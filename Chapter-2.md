@@ -1,258 +1,467 @@
-## Week 2: Programming Concepts Using Java
+# Chapter 2: Introduction to Programming Concepts Using Java
 
-### Lecture 1: **A First Taste of Java**
+## Overview
 
-The journey into programming usually begins with a simple program—the famous "Hello World." This is not just a tradition but helps beginners deal with the fundamental mechanics of compiling, executing, and outputting in a specific language. This lecture deals with the complexity of setting up even a simple Java program, illustrating how Java is syntactically heavier compared to other languages like **Python** or **C**.
+Java is a powerful, object-oriented programming language widely used for building robust, platform-independent applications. This chapter introduces the fundamental concepts of programming in Java, providing a solid foundation for further exploration.
 
-#### Python Comparison:
+We will cover:
+
+- Writing your first Java program.
+- Understanding basic data types.
+- Controlling program flow with conditional statements and loops.
+- Defining classes and creating objects.
+- Handling basic input and output operations.
+
+By the end of this chapter, you will be equipped to write simple Java programs and understand the core principles that underpin Java programming.
+
+---
+
+## Section 2.1: Your First Java Program
+
+### 2.1.1 The Tradition of "Hello, World!"
+
+The journey into programming often begins with a simple program that outputs "Hello, world!" This tradition helps new programmers familiarize themselves with the process of writing, compiling, and executing code.
+
+#### Writing "Hello, World!" in Different Languages
+
+**Python Example:**
 
 ```python
-print("hello, world")
+print("Hello, world!")
 ```
-- Python allows a simple function call `print()` to print directly, making it beginner-friendly.
 
-#### C Comparison:
+- Python allows you to print directly using the `print()` function without any additional structure or declarations.
+
+**C Example:**
 
 ```c
 #include <stdio.h>
-main() {
-    printf("hello, world\n");
+
+int main() {
+    printf("Hello, world!\n");
+    return 0;
 }
 ```
-- C requires including standard libraries (like `stdio.h`) and two levels of effort: function declarations and calling `printf()` for output.
 
-#### Java Example: 
+- C requires including a standard library (`stdio.h`), defining a `main()` function, and using `printf()` to output text.
+
+### 2.1.2 Writing "Hello, World!" in Java
+
+**Java Example:**
 
 ```java
 public class HelloWorld {
     public static void main(String[] args) {
-        System.out.println("hello, world");
+        System.out.println("Hello, world!");
     }
 }
 ```
 
-#### Why so complicated in Java?
+At first glance, Java's version appears more complex. Let's break it down to understand each component.
 
-Let's break the structure down:
-1. **Classes**: In Java, **everything is inside a class**. This means it does not allow free-floating functions like Python.
-2. **Public Modifier**: Java introduces visibility modifiers like **`public`** to control access to classes, functions, and variables.
-3. **Main Function**: Java uses the `main()` function as the entry point for execution, following a convention in languages like C.
-4. **Signature of main()**: 
-   - **Return type**: The main function returns **`void`** as it doesn't return a value.
-   - **Input arguments**: The main function takes an array of **`String`** as input for command-line arguments.
-5. **Static**: The `static` modifier allows a method like **`main()`** to execute without instantiating the class. It indicates that the method belongs to the class itself rather than to any specific object.
+### 2.1.3 Understanding the Java Program Structure
 
-#### Printing in Java:
-```java
-System.out.println("hello, world");
-```
-- **System.out** is an **output stream** object used to connect to the output screen.
-- **println()** prints text and moves to a new line (similar to Python `print()`).
+#### Classes in Java
 
-##### Punctuation:
-- Java uses braces **`{}`** to define blocks (like functions or classes), and each statement must end with a **semicolon (`;`)**, which contrasts with Python's use of indentation.
+- **Class Definition:** `public class HelloWorld { ... }`
+  - In Java, **everything is contained within a class**. You cannot have standalone functions or statements outside a class.
 
-#### Compilation and Execution:
+#### The `main()` Method
 
-1. **JVM** (Java Virtual Machine):
-   - Java compiles to a **bytecode** that runs on the JVM.
-   - This ensures **portability** across operating systems—slogan: **“Write once, run anywhere.”**
+- **Method Signature:** `public static void main(String[] args) { ... }`
+  - **public:** The method is accessible from anywhere.
+  - **static:** Belongs to the class rather than an instance of the class. This means it can be called without creating an object.
+  - **void:** The method does not return any value.
+  - **main:** The entry point of any Java application.
+  - **String[] args:** An array of `String` objects, representing command-line arguments passed to the program.
 
-2. **Compilation Command**:
-   ```bash
-   javac HelloWorld.java
-   java HelloWorld
-   ```
-   - **`javac`** produces a **`.class`** file that contains bytecode.
-   - **`java`** runs the bytecode file without needing the **`.class`** extension.
+#### Outputting Text
 
-**Reflection**: At this stage, the lecture provides a complete explanation of Java's basic structure and why Java requires elements such as **classes, modifiers (public, static)**, and **main**. These concepts are fundamental because they will anchor all further discussions.
+- **Printing to Console:** `System.out.println("Hello, world!");`
+  - **System.out:** A standard output stream provided by Java.
+  - **println():** A method that prints the provided text followed by a newline character.
 
----
+#### Punctuation and Syntax
 
-### Lecture 2: **Basic Datatypes in Java**
+- **Braces `{}`:** Define the beginning and end of classes and methods.
+- **Semicolons `;`:** End statements in Java.
 
-Java is **object-oriented**, but for efficiency and ease of use, eight **scalar types** are treated as primitive types (i.e., non-objects).
+### 2.1.4 Compiling and Running Java Programs
 
-#### Primitive Types in Java:
-1. **Numerics**:
-   - **`int`**: 4 bytes
-   - **`long`**: 8 bytes
-   - **`short`**: 2 bytes
-   - **`byte`**: 1 byte
+Java uses a two-step process involving compilation and execution.
 
-2. **Floating-point**:
-   - **`float`**: 4 bytes
-   - **`double`**: 8 bytes
+#### Compilation
 
-3. **Character**:
-   - **`char`**: 2 bytes, optimized for **Unicode** text handling.
+- Use the Java compiler `javac` to compile your source code into bytecode.
+  ```bash
+  javac HelloWorld.java
+  ```
+- This generates a `HelloWorld.class` file containing the bytecode.
 
-4. **Boolean**:
-   - **`boolean`**: 1 byte, values **true** and **false**.
+#### Execution
 
-#### Variable Declaration and Assignment:
-- Variables must be declared before use as shown:
-```java
-int x, y;
-x = 5;
-y = 10;
-```
+- Run the bytecode using the Java Virtual Machine (JVM).
+  ```bash
+  java HelloWorld
+  ```
+- **Note:** Do not include the `.class` extension when running the program.
 
-- **Strings**:
-   ```java
-   String s = "Hello";
-   ```
+#### Java Virtual Machine (JVM)
 
-#### Key Feature in **Java: Unicode**:
-- Java prioritizes support for international characters with **2-byte char** for Unicode.
+- The JVM interprets the compiled bytecode and executes it on the host machine.
+- **Portability:** Java's "Write Once, Run Anywhere" philosophy means that compiled Java code can run on any device equipped with a JVM.
 
-```java
-char c = 'x';
-char pi = '\u03C0'; // Greek symbol for pi
-```
+### 2.1.5 Key Takeaways
 
-#### Constants with **final** Modifier:
-Java allows constants using `final`:
-```java
-final float pi = 3.1415927f;
-```
-Restricting re-assignment:
-```java
-pi = 3.0; // Error
-```
-
-#### Operators & Shortcuts:
-1. Standard operators: `+, -, *, /, %`
-2. Java lacks a separate division operator `//` for integer division.
-3. Exponentiation via **`Math.pow()`**:
-   ```java
-   Math.pow(2,3); // results in 8.0
-   ```
-
-4. Increment/Decrement:
-   ```java
-   a++; // Same as a = a + 1;
-   ```
-
-#### Strings:
-Strings in Java are **objects**.
-```java
-String s = "Hello";
-String message = s + " " + "world!";
-```
-- Strings are **immutable**. Modifications like substring operations generate new string objects instead of modifying in place.
-
-#### Arrays:
-Arrays are objects in Java:
-```java
-int[] a = new int[5];
-```
-Key features:
-- They reference specific memory slots.
-- Arrays have a **`.length`** property.
-- They are 0-based indexed.
-
-Key reflection here is emphasizing that **primitive types** help Java balance its object-centered paradigm with the need for performance, efficiency, and simplicity in handling numbers and text.
+- Java programs are structured around classes and methods.
+- The `main()` method serves as the starting point.
+- Java's syntax requires attention to detail, such as proper use of braces and semicolons.
+- Understanding the compilation and execution process is essential for running Java programs.
 
 ---
 
-### Lecture 3: **Control Flow in Java**
+## Section 2.2: Basic Data Types in Java
 
-In-depth exploration of control structures in Java, reflecting core programming logic.
+Data types specify the kind of data that can be stored and manipulated within a program. Java provides both primitive data types and objects to handle data efficiently.
 
-#### Conditional Structures:
+### 2.2.1 Primitive Data Types
+
+Java's primitive data types are not objects; they hold simple values directly for efficiency.
+
+#### Numeric Types
+
+1. **Integer Types**
+
+   - **byte**: 1 byte, range from -128 to 127.
+   - **short**: 2 bytes, range from -32,768 to 32,767.
+   - **int**: 4 bytes, range from -2^31^ to 2^31^-1.
+   - **long**: 8 bytes, range from -2^63^ to 2^63^-1.
+
+2. **Floating-Point Types**
+
+   - **float**: 4 bytes, single-precision 32-bit IEEE 754.
+   - **double**: 8 bytes, double-precision 64-bit IEEE 754.
+
+#### Character Type
+
+- **char**: 2 bytes, stores a single Unicode character.
+
+#### Boolean Type
+
+- **boolean**: 1 byte (size not precisely defined), values are `true` or `false`.
+
+### 2.2.2 Variable Declaration and Initialization
+
+Variables must be declared with a type before use.
+
+```java
+int count;          // Declaration
+count = 10;         // Assignment
+```
+
+Or combined:
+
+```java
+int count = 10;     // Declaration and initialization
+```
+
+#### Multiple Declarations
+
+```java
+int x = 5, y = 10;
+```
+
+### 2.2.3 Working with Strings
+
+Strings are objects in Java, instances of the `String` class.
+
+```java
+String greeting = "Hello, world!";
+```
+
+- Strings are **immutable**; once created, they cannot be changed.
+
+#### String Concatenation
+
+```java
+String firstName = "Jane";
+String lastName = "Doe";
+String fullName = firstName + " " + lastName; // "Jane Doe"
+```
+
+### 2.2.4 Unicode Support
+
+Java uses Unicode, allowing for international character representation.
+
+```java
+char letter = 'A';
+char piSymbol = '\u03C0'; // Unicode for π
+```
+
+- Unicode escape sequences use the format `\uXXXX`, where `XXXX` is the hexadecimal code.
+
+### 2.2.5 Constants with the `final` Keyword
+
+The `final` keyword makes a variable's value unchangeable (constant).
+
+```java
+final double PI = 3.141592653589793;
+```
+
+- Attempting to modify `PI` will result in a compile-time error.
+
+### 2.2.6 Operators and Expressions
+
+#### Arithmetic Operators
+
+- **Addition (+)**: `int sum = a + b;`
+- **Subtraction (-)**: `int difference = a - b;`
+- **Multiplication (*)**: `int product = a * b;`
+- **Division (/)**: `int quotient = a / b;`
+- **Modulus (%)**: `int remainder = a % b;`
+
+#### Increment and Decrement Operators
+
+- **Increment (++)**: `count++;` or `++count;`
+- **Decrement (--)**: `count--;` or `--count;`
+
+#### Exponentiation
+
+- Java does not have an exponentiation operator. Use `Math.pow()`.
+
+```java
+double result = Math.pow(2, 3); // 8.0
+```
+
+#### Integer Division
+
+- Dividing two integers discards the fractional part.
+
+```java
+int result = 7 / 2; // Result is 3
+```
+
+### 2.2.7 Arrays
+
+Arrays store multiple values of the same type.
+
+#### Declaration and Creation
+
+```java
+int[] numbers = new int[5]; // An array of 5 integers
+```
+
+#### Initialization
+
+```java
+int[] primes = {2, 3, 5, 7, 11};
+```
+
+#### Accessing Elements
+
+- Zero-based indexing: `int firstPrime = primes[0]; // 2`
+
+#### Array Length
+
+```java
+int length = primes.length; // 5
+```
+
+### 2.2.8 Key Points
+
+- Primitive data types offer efficient data handling.
+- Strings and arrays are objects, providing additional functionality.
+- Understanding data types is crucial for proper variable declaration and manipulation.
+
+---
+
+## Section 2.3: Control Flow Statements
+
+Control flow statements determine the order in which individual statements, instructions, or function calls are executed or evaluated.
+
+### 2.3.1 Conditional Statements
+
+#### The `if` Statement
+
+Executes a block of code if a condition is true.
+
 ```java
 if (condition) {
-    //code
-} else {
-    //code
+    // Code to execute if condition is true
 }
 ```
-- Braces are necessary for multiple statements but **optional for single statements**.
 
-#### Loops:
-##### While Loops:
+#### The `if-else` Statement
+
+Provides an alternative execution path if the condition is false.
+
+```java
+if (condition) {
+    // Code if condition is true
+} else {
+    // Code if condition is false
+}
+```
+
+#### The `if-else if-else` Ladder
+
+Handles multiple conditions.
+
+```java
+if (condition1) {
+    // Code if condition1 is true
+} else if (condition2) {
+    // Code if condition2 is true
+} else {
+    // Code if none of the above conditions are true
+}
+```
+
+**Note:** Braces `{}` are required for multiple statements but optional for single statements.
+
+### 2.3.2 Looping Statements
+
+#### The `while` Loop
+
+Repeats a block of code while a condition is true.
+
 ```java
 while (condition) {
-    //code
+    // Code to repeat
 }
 ```
-- **Do-while Loop** checks the condition **after** the loop body, ensuring at least one traversal:
+
+#### The `do-while` Loop
+
+Executes the code block once before checking the condition.
+
 ```java
 do {
-    //code
+    // Code to execute
 } while (condition);
 ```
 
-##### `for` Loops (C-Style Inheritance):
-Standard C-style loop:
+#### The `for` Loop
+
+Used when the number of iterations is known.
+
 ```java
-for (int i = 0; i < n; i++) {
-    //code
+for (initialization; condition; update) {
+    // Code to repeat
 }
 ```
 
-##### Enhanced `for` loop:
-Introduced to iterate over arrays or collections:
+**Example:**
+
 ```java
-for (int element : array) {
-    //code
+for (int i = 0; i < 10; i++) {
+    System.out.println("i = " + i);
 }
 ```
 
-#### Multi-way Branching - `switch`:
+#### The Enhanced `for` Loop
+
+Simplifies looping through arrays or collections.
+
 ```java
-switch (expression) {
+for (type element : array) {
+    // Use element
+}
+```
+
+**Example:**
+
+```java
+int[] numbers = {1, 2, 3, 4, 5};
+for (int num : numbers) {
+    System.out.println(num);
+}
+```
+
+### 2.3.3 The `switch` Statement
+
+Selects a block of code to execute based on the value of an expression.
+
+```java
+switch (variable) {
     case value1:
-        //code
+        // Code block
         break;
     case value2:
-        //code
+        // Code block
         break;
     default:
-        //code
+        // Default code block
 }
 ```
-Java’s `switch` falls through unless **`break`** is explicitly called.
 
-Summarizing, we see how Java’s **control flow** mechanisms are rooted deeply in traditional C-structured examples while incorporating more modern idioms like the enhanced for-loop.
+- **Break Statement:** Prevents fall-through to subsequent cases.
+- **Fall-Through Behavior:** Without `break`, execution continues to the next case.
+
+**Example:**
+
+```java
+int day = 3;
+switch (day) {
+    case 1:
+        System.out.println("Monday");
+        break;
+    case 2:
+        System.out.println("Tuesday");
+        break;
+    case 3:
+        System.out.println("Wednesday");
+        break;
+    default:
+        System.out.println("Another day");
+}
+```
+
+### 2.3.4 Key Concepts
+
+- Control flow statements guide the execution path of a program.
+- Proper use of loops and conditionals allows for dynamic and responsive programs.
+- The `switch` statement provides a clear structure for multi-way branching.
 
 ---
 
-### Lecture 4: **Defining Classes and Objects in Java**
+## Section 2.4: Classes and Objects
 
-At the heart of Java’s object orientation lies the **class** definition, which centralizes the logic for defining new data types.
+Java is an object-oriented language, meaning it uses objects to model real-world entities.
 
-#### Class Definition and Visibility:
-Everything in Java begins with a class:
+### 2.4.1 Defining a Class
+
+A class serves as a blueprint for objects.
+
 ```java
 public class Date {
-    private int day, month, year;
+    // Fields, constructors, and methods
 }
 ```
-- The `public` keyword makes the class externally visible.
-- **Instance variables** (like `day, month, year`) are typically declared **private** to enforce encapsulation.
 
-#### Creating and Initializing Objects:
-Objects are instantiated using `new`:
-```java
-Date d = new Date();
-```
+#### Access Modifiers
 
-#### Methods and `this`:
-Methods provide access and manipulation of fields.
+- **public:** Accessible from other classes.
+- **private:** Accessible only within the declared class.
+
+### 2.4.2 Fields (Instance Variables)
+
+Variables that hold the state of an object.
+
 ```java
-public void setDate(int d, int m, int y) {
-    this.day = d;
-    this.month = m;
-    this.year = y;
+public class Date {
+    private int day;
+    private int month;
+    private int year;
 }
 ```
-- `this` **references the current instance.**
 
-#### Constructors:
-Constructors initialize objects at the time of their creation:
+- Declared as `private` to enforce encapsulation.
+
+### 2.4.3 Constructors
+
+Special methods invoked when creating an object.
+
 ```java
 public Date(int day, int month, int year) {
     this.day = day;
@@ -260,58 +469,221 @@ public Date(int day, int month, int year) {
     this.year = year;
 }
 ```
-- Java supports **overloading constructors**—multiple constructors based on different parameter signatures:
+
+- **Overloading Constructors:** Having multiple constructors with different parameters.
+
 ```java
-public Date(int day, int month)
+public Date() {
+    // Default constructor
+}
+
+public Date(int day, int month) {
+    this(day, month, 2023); // Calls another constructor
+}
 ```
 
-#### Copy Constructors:
-- This allows creating new instances from existing ones.
+### 2.4.4 The `this` Keyword
+
+Refers to the current object instance.
+
 ```java
-public Date(Date aDate);
+public void setDate(int day, int month, int year) {
+    this.day = day;
+    this.month = month;
+    this.year = year;
+}
 ```
 
-### Reflection:
-Java emphasizes **strict encapsulation** and the **importance of controlled data initialization** with constructors and methods like `getDay()`, marking a clear departure from implicit, weakly-typed data handling.
+### 2.4.5 Methods
+
+Functions that define behaviors of objects.
+
+```java
+public int getDay() {
+    return day;
+}
+
+public void setDay(int day) {
+    this.day = day;
+}
+```
+
+- **Accessor Methods (Getters):** Retrieve field values.
+- **Mutator Methods (Setters):** Modify field values.
+
+### 2.4.6 Creating Objects
+
+Instantiate objects using the `new` keyword.
+
+```java
+Date today = new Date(27, 10, 2023);
+```
+
+### 2.4.7 Copy Constructors
+
+Create a new object by copying an existing one.
+
+```java
+public Date(Date otherDate) {
+    this.day = otherDate.day;
+    this.month = otherDate.month;
+    this.year = otherDate.year;
+}
+```
+
+### 2.4.8 Encapsulation
+
+- **Encapsulation:** Bundling data (fields) and methods that operate on the data into a single unit (class).
+- **Access Control:** Using access modifiers to restrict access to the inner workings of a class.
+
+### 2.4.9 Key Points
+
+- Classes define the structure and behavior of objects.
+- Encapsulation protects the integrity of data.
+- Constructors initialize new objects.
+- Methods allow interaction with an object's data.
 
 ---
 
-### Lecture 5: **Basic Input and Output in Java**
+## Section 2.5: Input and Output in Java
 
-Input and Output are crucial for interacting with programs, and Java provides sophisticated ways to handle both.
+Input and output (I/O) operations enable programs to interact with users and other systems.
 
-#### Handling Input:
-##### 1. **Console Class**:
-   - Similar to Python's **`input()`**:
+### 2.5.1 Output Operations
+
+#### Using `System.out.println()`
+
+Outputs text followed by a newline.
+
 ```java
-Console cons = System.console();
-String username = cons.readLine("Username: ");
+System.out.println("Hello, world!");
 ```
 
-##### 2. **Scanner Class**:
-   - Capable of reading different types (integer, string, etc.)
+#### Using `System.out.print()`
+
+Outputs text without a newline.
+
 ```java
-Scanner in = new Scanner(System.in);
-String name = in.nextLine();
-int age = in.nextInt();
+System.out.print("Hello, ");
+System.out.print("world!");
 ```
 
-#### Handling Output:
-1. Normal output via **`System.out.println()`**:
+#### Formatted Output with `System.out.printf()`
+
+Similar to `printf()` in C, allows formatted strings.
+
 ```java
-System.out.println("Hello");
-```
-2. Formatted output is handled similarly to **`printf()`** in C:
-```java
-System.out.printf("Name: %s, Age: %d", name, age);
+String name = "Alice";
+int age = 30;
+System.out.printf("Name: %s, Age: %d%n", name, age);
 ```
 
-**Reflection**: Java provides a **layered** and **modular** approach to input/output, whether from basic command-line consoles or complex user streams.
+- **Format Specifiers:**
+  - `%s`: String
+  - `%d`: Integer
+  - `%f`: Floating-point number
+  - `%n`: Newline character
+
+### 2.5.2 Input Operations
+
+#### Using the `Scanner` Class
+
+Reads input from various sources, commonly `System.in`.
+
+```java
+import java.util.Scanner;
+
+Scanner scanner = new Scanner(System.in);
+System.out.print("Enter your name: ");
+String name = scanner.nextLine();
+
+System.out.print("Enter your age: ");
+int age = scanner.nextInt();
+```
+
+- **Common Methods:**
+  - `nextLine()`: Reads a line of text.
+  - `nextInt()`: Reads an integer.
+  - `nextDouble()`: Reads a double.
+- **Closing the Scanner:**
+  ```java
+  scanner.close();
+  ```
+
+#### Using the `Console` Class
+
+Provides methods to read from the console, with additional features like reading passwords.
+
+```java
+Console console = System.console();
+if (console != null) {
+    String username = console.readLine("Username: ");
+    char[] password = console.readPassword("Password: ");
+}
+```
+
+- **Note:** The `Console` object may not be available in all environments.
+
+### 2.5.3 Key Concepts
+
+- **Standard Output:** `System.out` stream for displaying information.
+- **Standard Input:** `System.in` stream for receiving user input.
+- **Formatted Output:** Use `printf()` for structured output.
 
 ---
 
-### Final Reflection for Week 2:
+## Section 2.6: Summary and Reflection
 
-We’ve integrated the core principles for working in Java, from its heavy reliance on **class structure**, its inherent **object-oriented** approach, control mechanisms (input/output), and handling of **basic data types**. Java shows a clear focus on offering **type safety**, **encapsulation**, and **object manipulation** through methods like constructors and accessors. This rigid structure ensures **portability**, security, and strong typing but adds syntactic weight, which can be reduced through best practices.
+In this chapter, we've explored the fundamental aspects of programming in Java.
 
+- **Java Program Structure:** Understanding the importance of classes and the `main()` method.
+- **Data Types:** Familiarity with primitive data types and how to use them effectively.
+- **Control Flow:** Mastery of conditional statements and loops to direct program execution.
+- **Object-Oriented Programming:** Grasping the concepts of classes, objects, methods, and encapsulation.
+- **Input and Output:** Learning how to interact with users through console I/O.
 
+These concepts are the building blocks of Java programming. With a strong foundation, you're prepared to delve deeper into more advanced topics and tackle complex programming challenges.
+
+---
+
+## Exercises
+
+1. **Hello, Name!**
+
+   - Modify the "Hello, world!" program to greet the user by name.
+   - **Hint:** Use `Scanner` to read the user's name.
+
+2. **Simple Calculator**
+
+   - Write a program that takes two numbers and an operator (`+`, `-`, `*`, `/`) as input and performs the corresponding calculation.
+   - **Hint:** Use a `switch` statement to handle different operations.
+
+3. **Temperature Converter**
+
+   - Create a class `TemperatureConverter` with methods to convert temperatures between Celsius and Fahrenheit.
+   - **Hint:** Use `double` for temperature values and provide both static and instance methods.
+
+4. **Array Operations**
+
+   - Write a program that initializes an array with the first 10 prime numbers and calculates their sum and average.
+   - **Hint:** Use a `for` loop to iterate through the array.
+
+5. **Date Class Enhancement**
+
+   - Enhance the `Date` class by adding methods to check if a year is a leap year and to return the next day's date.
+   - **Hint:** Consider the rules for leap years and the number of days in each month.
+
+---
+
+## Further Reading
+
+- **Object-Oriented Programming Principles:**
+  - **Abstraction:** Simplifying complex reality by modeling classes appropriate to the problem.
+  - **Inheritance:** Mechanism where a new class is derived from an existing class.
+  - **Polymorphism:** Ability of objects to take on many forms.
+- **Exception Handling:**
+  - Learn how to handle runtime errors gracefully using `try`, `catch`, and `finally` blocks.
+- **Collections Framework:**
+  - Explore Java's built-in data structures like `ArrayList`, `HashMap`, and `HashSet`.
+- **File I/O:**
+  - Understand how to read from and write to files using classes like `FileReader`, `FileWriter`, `BufferedReader`, and `BufferedWriter`.
