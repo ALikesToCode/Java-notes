@@ -1,4 +1,4 @@
-# **Mastering JavaScript: Collections, Modularity, Objects, Asynchrony, and JSON**
+# Chapter 1: **Mastering JavaScript: Collections, Modularity, Objects, Asynchrony, and JSON**
 
 ---
 
