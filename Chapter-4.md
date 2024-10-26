@@ -1,4 +1,4 @@
-# Chapter: Advanced Object-Oriented Programming Concepts in Java
+# Chapter 4: Advanced Object-Oriented Programming Concepts in Java
 
 ## Introduction
 
