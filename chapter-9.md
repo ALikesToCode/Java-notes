@@ -1,789 +1,657 @@
-**Week 9: Mastering Concurrency and Data Handling in Java**
+# Week 9: Mastering Concurrency and Data Handling in Java
 
-**Introduction:**
+## Introduction
 
-Welcome to Week 9, where we delve into two powerful and intertwined concepts in Java: concurrency and advanced data handling. In this module, we'll tackle challenges related to working with multiple threads and efficiently managing diverse data structures, moving beyond basic operations and delving into some of Java's core features for building more robust and scalable applications. 
+Welcome to Week 9, where we delve into the powerful concepts of concurrency and advanced data handling in Java. This module will equip you with the tools to handle multiple threads and efficiently manage data structures, going beyond basic operations to explore Java's core features for building robust, scalable applications.
 
-**Module 1: Understanding Optional Types**
+---
 
-**1.1 The Problem: Handling the Absence of Data**
+## Module 1: Understanding Optional Types
 
-In many programs, operations might fail to produce a value. Instead of returning a “null” value, which can cause NullPointerExceptions, Java introduces *Optional* types. Let’s consider a scenario. You are processing data from an API that provides user details. Sometimes the API might not have some specific details for a particular user, such as their address. 
+### 1.1 The Problem: Handling the Absence of Data
 
-Returning `null` values creates challenges:*   **NullPointerException:** If the program assumes a value is present and tries to access methods or properties of the `null`, then it throws a NullPointerException, causing the program to crash.*   **Code Clutter:** You must add explicit `null` checks to prevent the exceptions, making the code verbose.
+In many programs, operations might fail to produce a value. Java introduces *Optional* types to avoid the pitfalls of returning `null`, which can lead to:
 
-**1.2 The Solution: Introducing `Optional<T>`**
+- **NullPointerException:** Accessing methods or properties of `null` causes the program to crash.
+- **Code Clutter:** Explicit `null` checks add verbosity to the code.
 
-Java provides `Optional<T>` as a container object that may or may not contain a non-null value. `T` represents the type of value that could be stored inside. Using `Optional<T>`, we can be more expressive about the possibility of a missing value and it becomes part of the API.
+Consider processing user data from an API, where user details like addresses might be missing. Instead of returning `null`, you can use optional types for safer and cleaner code.
 
-Key Concepts:*   **Wrapper Object:** Optional is a container or a wrapper for a value of a specific type.*   **State of an Optional**: An Optional instance can be in one of the two states - Value is present or value is absent (empty).*   **Type-Safe Handling:** Optional enforces type safety because if we define the API returns Optional, then we can only access it through the methods of optional and not just the contained value.
+### 1.2 The Solution: Introducing `Optional<T>`
 
-**1.3  Dealing with Empty Streams**
+Java's `Optional<T>` is a container object that may or may not hold a non-null value. 
 
-A common area where Optional values are used in Java is with Streams, particularly with terminal operations such as `max()` and `min()`. When applied to an empty stream, there isn't a maximum or minimum value.
+**Key Concepts:**
 
-Example:```java
-Optional<Double> maxrand =
-        Stream.generate(Math::random)
-        .limit(100)
-        .filter(n -> n < 0.001)
-        .max(Double::compareTo);
-```In the code above, the filter might eliminate all elements, resulting in an empty stream. In this case, the method `max()` does not produce a `Double` but an `Optional<Double>` object which might or might not contain a value.  What if we simply want a `double` value?
+- **Wrapper Object:** Optional is a wrapper for a value of a specific type.
+- **State of an Optional:** An `Optional` can be either present or empty.
+- **Type-Safe Handling:** Enforces type safety, requiring access through `Optional` methods.
 
-**1.4 Handling Missing Optional Values**
+### 1.3 Dealing with Empty Streams
 
-Here’s how we deal with missing Optional values:
-
-*   **orElse(T other):**    - If a value is present in the Optional object, it returns that value.    - If the Optional is empty, it returns the specified “other” value as a default.    - Good for simple cases where you have a fallback value, eg: default value.    ```java
-    Double fixrand = maxrand.orElse(-1.0); // returns -1.0 if maxrand is empty
-    ```*   **orElseGet(Supplier<? extends T> supplier):**    -   Similar to orElse, but it accepts a function (`Supplier`) which generates the replacement if the Optional is empty.    -   This allows for more complex default value generation.    -   Use case: when your fallback is costly to compute.    ```java
-    Double fixrand = maxrand.orElseGet(
-             () -> SomeFunctionToGenerateDouble()
-          );
-    ```*   **orElseThrow(Supplier<? extends X> exceptionSupplier):**    - If the value is present, it returns the value.    - If the Optional is empty, it throws an exception generated by the provided supplier.    - Use case: when you want to signal a missing value as an exception.     ```java
-    Double fixrand = maxrand.orElseThrow(
-        IllegalStateException::new
-      );
-    ```
-
-**1.5 Ignoring Missing Optional Values**
-
-Often you might want to check if an optional is present and perform some actions, without using if-else kind of constructs. Here are a few ways to do this:
-
-*   **ifPresent(Consumer<? super T> action):**    - If value is present, it performs the given action.    - Good for side effects that are not necessary for program execution.    ```java
-     optionalValue.ifPresent (v -> Process v); // only process if value is present.
-    ```
-
-*   **Adding to a Collection using ifPresent:**    - If you have to add a value to a collection, only if it is present in the optional:    ```java
-    Optional<Double> maxrand =
-       Stream.generate(Math::random)
-       .limit(100)
-       .filter(n -> n < 0.001)
-       .max(Double::compareTo);
-    
-    var results = new ArrayList<Double>();
-    maxrand.ifPresent (v -> results.add(v));
-    
-    //Using method reference:
-    maxrand.ifPresent (results::add);
-    ```    *   **Alternative Action if the Value is not Present:**  - ifPresentOrElse() handles both cases of presence and absence.    ```java
-   Optional<Double> maxrand =
-       Stream.generate(Math::random)
-       .limit(100)
-       .filter(n -> n < 0.001)
-       .max(Double::compareTo);
-    
-   var results = new ArrayList<Double>();
-   maxrand.ifPresentOrElse(
-     v -> results.add(v),
-     () -> System.out.println("No max")
-   );
-    ```
-
-**1.6 Creating Optional Values**
-
-There are different ways to construct optional objects:
-
-*   **Optional.of(T value):**    - Creates a new Optional object that contains a specified value    -   Throws a `NullPointerException` if the value is null    ```java
-     Optional<Double>  val = Optional.of(2.5);
-    ```
-
-*   **Optional.empty():**    - Creates an empty Optional instance, representing an absent value.    ```java
-    Optional<String>  str = Optional.empty();
-    ```*    **Optional.ofNullable(T value):**    -   Creates an Optional instance, but is null-tolerant. If the value is null, it returns an empty Optional. If not, it returns the optional wrapping the value.    -   Useful when interfacing with legacy code that may return null values.    ```java
-     Optional<Double>  val = Optional.ofNullable(myFunc()); // myFunc might return null
-    ```
-
-**1.7 Passing On Optional Values**
-
-Sometimes we want to chain operations on an Optional value, but also preserving the optional. We can do it with the following:
-
-*   **map(Function<? super T, ? extends U> mapper):**     -  Applies the mapping function to the value if it is present and returns an optional of the result.     -   Returns an empty Optional if the original Optional was empty.     -   This enables us to chain operations that return optional and preserve the Optional object.     ```java
-       Optional<Double> maxrand = ...;
-       Optional<Double> maxrandasqr = maxrand.map(v -> v*v); // will only execute if maxrand is not empty.
-    ```*   **Another Example:**
-
- ```java
-    Optional<Double> maxrand = ...;
-    var results = new ArrayList<Double>();
-    maxrand.map(results::add);
- ```
-
-*   **or() Method**
-
-   - If a value is present, it will be passed as it is.   - If value is empty, then value generated by or() is passed.```java
-Optional<Double> maxrand = ...;
-Optional<Double> fixrand =
-maxrand.or(() -> Optional.of(-1.0));
-```
-
-**1.8 Composing Optional Values**
-
-*   **flatMap(Function<? super T, ? extends Optional<? extends U>> mapper):**    -  If you have a function, which returns an optional and the input is again an optional, then map won't work.    - flatMap transforms the optional value but also flattens the nested Optionals which arise from the mapping.    -  If you are calling a method like f() which returns Optional, and class T defines method g which returns optional then you should apply flat map and not just map to combine them, to avoid nested optionals.   - Use case: calling functions that return optionals and avoiding nested optionals.    ```java
-     Optional<U> result = s.f().flatMap(T::g);
-    ```
-
-*   **Example**
-
-   - Suppose that you have the inverse function which returns an optional. And you want to pass that to another function called sqrt, which also returns an optional. Then you can use the above flat map to chain the operations.   - Use case: Calling functions that return optional one after the other.
-
- ```java
-public static Optional<Double> inverse (Double x) {
-    if(x == 0) {
-        return Optional.empty();
-    } else {
-        return Optional.of(1/x);
-    }
-}
-
-public static Optional<Double> squareRoot (Double x) {
-    if(x < 0) {
-        return Optional.empty();
-    } else {
-        return Optional.of(Math.sqrt(x));
-    }
-}
-
-Optional<Double> result = inverse(x).flatMap(MyClass::squareRoot);
-```**1.9 Turning an Optional into a Stream***   **flatMap(Function<? super T, ? extends Stream<? extends U>> mapper):**   - A common case of composing optionals is to convert an optional into a stream.   - If a lookup function returns a User based on the id, if it is a valid username, then you can use flatMap to map this into a Stream of Users based on multiple ids.```java
-Optional<User> lookup(String id) { ... };
-
-Stream<String> ids = ...;
-Stream<User> users = ids.map(Users::lookup) // returns a stream of optional users
-      .flatMap(Optional::stream); // converts the optional values to stream of users
-```*   **Using ofNullable if `lookup` did not return Optional:**   - Use this function if the original code returned null instead of optional.
+Optionals are commonly used with Streams, particularly with terminal operations like `max()` and `min()`. These methods return an `Optional`, handling cases where a stream might be empty. 
 
 ```java
-    User oldLookup(String id) {... }; // might return user or null
-Stream<String> ids = ...;
-Stream<User> users = ids.flatMap(
-        id -> Stream.ofNullable(
-            Users.oldLookup(id)
-        )
+Optional<Double> maxRand = 
+    Stream.generate(Math::random)
+    .limit(100)
+    .filter(n -> n < 0.001)
+    .max(Double::compareTo);
+```
+
+Here, `maxRand` is an `Optional<Double>`, which may or may not contain a value.
+
+### 1.4 Handling Missing Optional Values
+
+**Common Methods:**
+
+- **`orElse(T other)`:** Returns the value if present, otherwise returns a default.
+  
+    ```java
+    Double fixedRand = maxRand.orElse(-1.0);
+    ```
+
+- **`orElseGet(Supplier<? extends T> supplier)`:** Allows complex default value generation when the optional is empty.
+
+    ```java
+    Double fixedRand = maxRand.orElseGet(() -> generateDefaultDouble());
+    ```
+
+- **`orElseThrow(Supplier<? extends X> exceptionSupplier)`:** Throws an exception if the value is absent.
+
+    ```java
+    Double fixedRand = maxRand.orElseThrow(IllegalStateException::new);
+    ```
+
+### 1.5 Ignoring Missing Optional Values
+
+- **`ifPresent(Consumer<? super T> action)`:** Executes an action if the value is present.
+
+    ```java
+    maxRand.ifPresent(value -> processValue(value));
+    ```
+
+- **Adding to a Collection Using `ifPresent`:**
+
+    ```java
+    var results = new ArrayList<Double>();
+    maxRand.ifPresent(results::add);
+    ```
+
+- **`ifPresentOrElse()`:** Handles both presence and absence of a value.
+
+    ```java
+    var results = new ArrayList<Double>();
+    maxRand.ifPresentOrElse(
+        results::add,
+        () -> System.out.println("No max")
     );
+    ```
 
-```**Module 2: Collecting Results from Streams**
+### 1.6 Creating Optional Values
 
-**2.1 From Collections to Streams, and Back Again:**We've learned that it's easy to convert collections to streams and process sequences of elements, but often we need to convert a stream back into a collection.
+- **`Optional.of(T value)`:** Creates an Optional containing a non-null value.
+  
+    ```java
+    Optional<Double> val = Optional.of(2.5);
+    ```
 
-**2.2 Processing a Stream as a Collection:**
+- **`Optional.empty()`:** Creates an empty Optional.
+  
+    ```java
+    Optional<String> str = Optional.empty();
+    ```
 
-*   **Standard Iterator:**  The `Stream` interface itself defines a standard iterator, allowing traversal using a loop:```java
-    Stream<String> mystream = ...;
-    mystream.forEach(System.out::println); // use to loop through values in a stream
-```*   **Using `forEach()`:** You can use forEach with a function to iterate over the stream: ```java
-     mystream.forEach (System.out::println); // using method reference
- ```*   **Converting to Array:** To store values in an array:  - Create a standard object array (type becomes `Object[]` )    ```java
-         Object[] result = mystream.toArray();
-    ```  - Create an array of a specific type  ```java
-      String[] result = mystream.toArray(String[]::new);
-      //mystream.toArray() has the type Object[]
-  ```
+- **`Optional.ofNullable(T value)`:** Creates an Optional that is tolerant of `null` values.
 
-**2.3 Storing a Stream as a Collection:**
+    ```java
+    Optional<Double> val = Optional.ofNullable(myFunc());
+    ```
 
-*  **Using collect():**    - Use the collect method to obtain a List or Set etc from the Stream    - It uses  factory methods from Collectors for this
+### 1.7 Passing On Optional Values
 
-*   **Create a List from a stream:**  ```java
-     List<String> result = mystream.collect(Collectors.toList());
-  ```*   **Create a Set from a Stream:**   ```java
-      Set<String> result = mystream.collect(Collectors.toSet());
-  ```*   **Create a Concrete Collection using a Constructor:**    -To create a concrete collection, use Collectors.toCollection() method. You need to provide a constructor for your collection object.     ```java
-          TreeSet<String> result = stream.collect(
-               Collectors.toCollection(TreeSet::new)
-          );
-      ```**2.4 Stream Summaries**   - We saw ways to reduce stream into a single result value such as count, max, min.   - However, Collectors also provide summaries to collect multiple results as a single object.*   **Using `summarizingInt()`:**  -  Use summarizingInt when you want to obtain several numeric properties of a stream of integers.   - You need a function which will map the stream elements to the required integer.  -   It returns an `IntSummaryStatistics` object```java
-       IntSummaryStatistics summary =
-         mystream.collect(
-            Collectors.summarizingInt(String::length)
-         );
-      double averageWordLength = summary.getAverage();
-      double maxwWordLength = summary.getMax();
-```*   **Methods on Summary Statistics**: You can use the following methods to access relevant properties from the returned summary object  -  `getCount()`
-   - `getMax()`
-  -  `getMin()`
-   - `getSum()`
-    -`getAverage()`
+- **`map(Function<? super T, ? extends U> mapper)`:** Applies a mapping function to the value if present, returning an Optional of the result.
 
-*  Similarly `summarizingLong` and `summarizingDouble` are available which will return LongSummaryStatistics and DoubleSummaryStatistics and has the similar accessors.
+    ```java
+    Optional<Double> maxRandSquare = maxRand.map(v -> v * v);
+    ```
 
-**2.5 Converting a Stream to a Map**
+### 1.8 Composing Optional Values
 
-Sometimes, you want to convert your stream of object to a Map. Then you can use Collectors.toMap() method.
+- **`flatMap(Function<? super T, ? extends Optional<? extends U>> mapper)`:** Allows chaining operations that return Optionals, flattening nested Optionals.
 
-*   **toMap(Function keyMapper, Function valueMapper):**    - The basic syntax is to provide a key mapper and a value mapper function.    - If your stream contains objects of type `Person`, and the keys should be ids and values should be names, then you can create a map as follows.```java
- Stream<Person> people = ...;
-Map<Integer, String> idToName = people.collect(
-            Collectors.toMap(
-              Person::getId,
-              Person::getName
-           )
-);
-```   - You can use any valid object for key and value, and not necessarily String and integers.*   **Using Function Identity:** If you want to the whole object as the value.```java
-  Stream<Person> people = ...;
-  Map<Integer, Person> idToPerson = people.collect(
-           Collectors.toMap(
-             Person::getId,
-              Function.identity()
-            )
-   );
-```
+    ```java
+    Optional<Double> result = inverse(x).flatMap(MyClass::squareRoot);
+    ```
 
-*   **Handling Duplicate Keys:**   -   If you have duplicate keys during mapping, you will get an `IllegalStateException`.   -   If you are going to use the name as a key and ID as a value, then you might encounter the following error.
+### 1.9 Turning an Optional into a Stream
 
- ```java
-Stream<Person> people = ...;
-Map<String, Integer> nameToID =
-people.collect(
-         Collectors.toMap(
-               Person::getName,
-               Person::getId
-         )
-  ); // Will throw exception
-```
+- **`flatMap(Function<? super T, ? extends Stream<? extends U>> mapper)`:** Converts an Optional into a Stream for use in further stream operations.
 
-*   **Using merge function to handle duplicates:**   - You can provide a function to handle if you are having a duplicate key.   - Here in the following example we are using the existing values for a duplicate key.
+    ```java
+    Stream<User> users = ids.map(Users::lookup)
+                            .flatMap(Optional::stream);
+    ```
 
-  ```java
-    Stream<Person> people = ...;
-    Map<String, Integer> nameToID =
-        people.collect(
-          Collectors.toMap(
-             Person::getName,
+---
+
+## Module 2: Collecting Results from Streams
+
+### 2.1 From Collections to Streams, and Back Again
+
+Converting collections to streams offers flexibility in processing, but often we need to convert streams back into collections.
+
+### 2.2 Processing a Stream as a Collection
+
+- **Using `forEach()`:** Iterates over the stream, applying a function to each element.
+
+    ```java
+    mystream.forEach(System.out::println);
+    ```
+
+- **Converting to Array:**
+
+    ```java
+    Object[] result = mystream.toArray();
+    String[] result = mystream.toArray(String[]::new);
+    ```
+
+### 2.3 Storing a Stream as a Collection
+
+- **Using `collect()`:**
+
+    - **Create a List:**
+
+        ```java
+        List<String> result = mystream.collect(Collectors.toList());
+        ```
+
+    - **Create a Set:**
+
+        ```java
+        Set<String> result = mystream.collect(Collectors.toSet());
+        ```
+
+    - **Create a Concrete Collection:**
+
+        ```java
+        TreeSet<String> result = stream.collect(
+            Collectors.toCollection(TreeSet::new)
+        );
+        ```
+
+### 2.4 Stream Summaries
+
+- **Using `summarizingInt()`:** Collects multiple numeric properties of a stream of integers.
+
+    ```java
+    IntSummaryStatistics summary = mystream.collect(
+        Collectors.summarizingInt(String::length)
+    );
+    double averageWordLength = summary.getAverage();
+    double maxWordLength = summary.getMax();
+    ```
+
+### 2.5 Converting a Stream to a Map
+
+- **`toMap(Function keyMapper, Function valueMapper)`:** Transforms a stream into a Map.
+
+    ```java
+    Map<Integer, String> idToName = people.collect(
+        Collectors.toMap(Person::getId, Person::getName)
+    );
+    ```
+
+- **Handling Duplicate Keys:**
+
+    ```java
+    Map<String, Integer> nameToID = people.collect(
+        Collectors.toMap(
+            Person::getName,
             Person::getId,
             (existingValue, newValue) -> existingValue
-         )
-      );
- ```
-
-**2.6 Grouping and Partitioning Values**
-
-Sometimes, you want to split your stream into groups. This could be two different kind of grouping.
-
-*   **Grouping by Key (groupingBy(Function classifier)):**    - Instead of discarding values with duplicate keys, group them.    - Collect all ids with the same name in a list.   ```java
-     Stream<Person> people = ...;
-      Map<String, List<Person>> nameToPersons =
-           people.collect(
-            Collectors.groupingBy(
-            Person::getName
-          )
-       );
-   ```*   **Partitioning using a Predicate(partitioningBy(Predicate predicate)):**    -  Instead, may want to partition the stream using a predicate.    -  Partition names into those that start with A and the rest.```java
-Stream<Person> people = ...;
-Map<Boolean, List<Person>> aAndOtherPersons =
- people.collect(
- Collectors.partitioningBy(
-p -> p.getName().substr(0,1).equals("A")
-       )
-);
-List<Person> startingLetterA = aAndOtherPersons.get(true);
-```
-
-**Module 3: Input/Output Streams**
-
-**3.1 Understanding I/O Streams:**We use I/O streams to handle input or output with external sources, allowing our programs to interact with data in different forms.
-
-*   **Input Streams:** Read a sequence of bytes from some source such as a file, an internet connection, or memory.*   **Output Streams:** Write a sequence of bytes to some source such as a file, an internet connection, or memory.*   **Data as Bytes:**  All data (text, numbers, multimedia) are represented internally as raw sequences of uninterpreted bytes. So the input and output are sequence of bytes.*   **Stream vs I/O Stream:** Importantly, the term ‘stream’ in I/O streams context differs from ‘stream’ as used in the `java.util.stream` API.  Stream class refers to a sequence of values that you are processing for some calculations etc.  I/O streams refers to raw bytes that you are reading or writing.
-
-**3.2 Input/Output Values and Types**   - Input and Output values can be of different types including raw bytes, text or binary data.
-
-  *  **Raw Bytes:** Input and output consist of raw, uninterpreted bytes of data.  *   **Text as Encoded Bytes:** Bytes can be interpreted as text using different Unicode encodings.  *   **Binary Data:**  Bytes can also represent binary data such as integers, floating-point numbers, doubles etc.
-
-**3.3 Input and Output Transformations**
-
-We often use transformers to process raw bytes. We can use a series of transformers, a pipeline:  -  Read raw bytes from a file, pass to a stream that reads text.  - Generate binary data, pass to a stream that writes raw bytes to a file.
-
-**3.4 Reading and Writing Raw Bytes**
-
-Java provides two essential classes for working directly with raw bytes:
-
-*   **InputStream:**   -   Abstract class for reading bytes. Subclasses provide implementations for specific sources.   -   Abstract methods like  read() (reads single byte), read(byte[] b) (read a set of bytes into buffer), readAllBytes() (reads all the bytes).   -   It is a good practice to check the availability of the data using `available()` before attempting to read.   ```java
-    InputStream in = ...;
-    int bytesAvailable = in.available();
-    if(bytesAvailable > 0) {
-      var data = new byte[bytesAvailable];
-      in.read(data);
-    }
-   ```
-
-*   **OutputStream:**    - Abstract class for writing bytes, Subclasses provide implementations for specific sinks.    - Abstract methods like `write(int b)` (write single byte), write(byte[] b) (write a set of bytes from buffer).    -  To write a sequence of bytes from a byte array:    ```java
-       OutputStream out = ...;
-       byte[] values = ...;
-        out.write(values);
-        in.close();
+        )
+    );
     ```
 
-**3.5 Important I/O Operations***   **Closing the Stream**: Always close a stream (both input and output) to release the resources by calling `close()` after the operations.*   **Flushing**: For output stream call flush() after writing to make sure the buffered data goes to the destination.
+### 2.6 Grouping and Partitioning Values
+
+- **Grouping by Key:**
+
+    ```java
+    Map<String, List<Person>> nameToPersons = people.collect(
+        Collectors.groupingBy(Person::getName)
+    );
+    ```
+
+- **Partitioning Using a Predicate:**
+
+    ```java
+    Map<Boolean, List<Person>> aAndOtherPersons = people.collect(
+        Collectors.partitioningBy(p -> p.getName().startsWith("A"))
+    );
+    ```
+
+---
+
+## Module 3: Input/Output Streams
+
+### 3.1 Understanding I/O Streams
+
+I/O streams handle input and output operations, representing data as sequences of bytes.
+
+- **Input Streams:** Read bytes from sources like files and network connections.
+- **Output Streams:** Write bytes to destinations like files and network connections.
+
+### 3.2 Input/Output Values and Types
+
+Data in streams can be raw bytes, encoded text, or binary data like integers and floats.
+
+### 3.3 Input and Output Transformations
+
+Transformers process raw bytes, enabling complex data handling by chaining streams and transformers together.
+
+### 3.4 Reading and Writing Raw Bytes
+
+- **`InputStream` and `OutputStream`:** Abstract classes for reading and writing bytes.
+
+    ```java
+    InputStream in = ...;
+    OutputStream out = ...;
+    ```
+
+### 3.5 Important I/O Operations
+
+- **Closing the Stream:** Always close streams with `close()`.
+- **Flushing:** Use `flush()` to ensure data is pushed to its destination.
+
+    ```java
+    out.flush();
+    ```
+
+### 3.6 Connecting a Stream to an External Source
+
+- **File Streams:**
+
+    ```java
+    var in = new FileInputStream("input.class");
+    var out = new FileOutputStream("output.bin", true); // Append
+    ```
+
+### 3.7 Reading and Writing Text
+
+- **Scanner Class:** For parsing text input.
+
+    ```java
+    var scin = new Scanner(new FileInputStream("input.txt"));
+    String s = scin.nextLine();
+    ```
+
+- **PrintWriter Class:** For writing text output.
+
+    ```java
+    var pout = new PrintWriter(new FileOutputStream("output.txt"));
+    pout.println("Hello, World!");
+    ```
+
+### 3.8 Example: Copying Input Text File to Output Text File
 
 ```java
- out.flush();
-```
-
-**3.6 Connecting a Stream to an External Source**
-
-*   **FileInputStream:** To connect to an input file:
-
-```java
-var in = new FileInputStream("input.class");
-```* **FileOutputStream:** To connect to an output file.  - To overwrite an existing file, provide `false` as a second argument to constructor:```java
-var out = new FileOutputStream("newoutput.bin", false); // Overwrite
-```  - To append to existing file, provide `true` as the second argument to constructor:```java
-var out = new FileOutputStream("sameoutput.bin", true); // Append
-```
-
-**3.7 Reading and Writing Text***   **Scanner Class:**    - A versatile class for parsing text input.    - Can be applied to any InputStream.    -   Provides many read methods such as `nextLine()` (read one line), `next()` (read one word), `nextInt()` (read int) and `hasNext()`.  ```java
-  var fin = new FileInputStream("input.txt");
-  var scin = new Scanner(fin);
-  String s = scin.nextLine(); // One line
-  String w = scin.next(); // One word
-  int i = scin.nextInt(); // Read an int
- boolean b = scin.hasNext(); // Any more words?
-```*   **PrintWriter Class:**    - For writing text output.    -   Can be applied to any OutputStream.    - Provides methods such as  `println()` and `print()`.  ```java
-       var fout = new FileOutputStream("output.txt");
-       var pout = new PrintWriter(fout);
-       String msg = "Hello, World!";
-       pout.println(msg);
-  ```
-
-**3.8 Example: Copying Input Text File to Output Text File**```java
- var in = new Scanner(...);
- var out = new PrintWriter(...);
- while(in.hasNext()) {
-   String line = in.nextLine();
+var in = new Scanner(new FileInputStream("input.txt"));
+var out = new PrintWriter(new FileOutputStream("output.txt"));
+while(in.hasNext()) {
+    String line = in.nextLine();
     out.println(line);
- }
+}
 ```
 
-**3.9 Reading and Writing Binary Data**
+### 3.9 Reading and Writing Binary Data
 
-*   **DataInputStream:** For reading binary data (int, short, float etc.)    -   Provides methods such as `readInt()`, `readShort()`, `readLong()`, `readFloat()`, `readDouble()`, `readChar()`, `readUTF()`, `readBoolean()`. ```java
- var fin = new FileInputStream("input.class");
- var din = new DataInputStream(fin);
+- **Data Streams:**
 
-  readInt, readShort, readLong
- readFloat, readDouble
- readChar, readUTF
- readBoolean
- ```*   **DataOutputStream:** For writing binary data (int, short, float etc)   -  Provides methods such as `writeInt()`, `writeShort()`, `writeLong()`, `writeFloat()`, `writeDouble()`, `writeChar()`, `writeUTF()`, `writeBoolean()`,  `writeChars()`, `writeByte()`.```java
-  var fout = new FileOutputStream("output.bin");
- var dout = new DataOutputStream(fout);
-   writeInt, writeShort, writeLong
- writeFloat, writeDouble
- writeChar, writeUTF
-writeBoolean
-writeChars, writeByte
-```**3.10 Example: Copying Binary File to Another Binary File**```java
-  var in = new DataInputStream(...);
-  var out = new DataOutputStream(...);
-  int bytesAvailable = in.available();
-  while(bytesAvailable > 0) {
-   var data = new byte[bytesAvailable];
-   in.read(data);
+    ```java
+    var din = new DataInputStream(new FileInputStream("input.class"));
+    var dout = new DataOutputStream(new FileOutputStream("output.bin"));
+    ```
+
+### 3.10 Example: Copying Binary File to Another Binary File
+
+```java
+var in = new DataInputStream(new FileInputStream("input.bin"));
+var out = new DataOutputStream(new FileOutputStream("output.bin"));
+int bytesAvailable = in.available();
+while(bytesAvailable > 0) {
+    var data = new byte[bytesAvailable];
+    in.read(data);
     out.write(data);
     bytesAvailable = in.available();
 }
-```*    **Catching Exceptions**: It's vital to handle I/O exceptions in try-catch blocks because such operations can fail at run-time.
-
-**3.11 Other Useful Features:**
-
-*   **BufferedInputStream:**    - Buffering an input stream reads blocks of data and is more efficient.    -  Wrap FileInputStream with BufferedInputStream:    ```java
-        var din = new DataInputStream(
-                new BufferedInputStream(
-                    new FileInputStream("grades.dat")
-                )
-           );
-    ```*   **PushbackInputStream:**   - Offers speculative reads where you examine first element and return to stream if necessary.   - Read(), unread() methods. ```java
- var pbin = new PushbackInputStream(
-        new BufferedInputStream(
-            new FileInputStream("grades.dat")
-        )
-  );
- int b = pbin.read();
- if(b != '<') {
-   pbin.unread(b);
- }
 ```
 
-**3.12 Summary of Input/Output Streams**
+### 3.11 Other Useful Features
 
-*   Java's approach to input/output is to separate out concerns and we can chain together different types of input/output streams.*   We can read and write raw bytes, interpret raw bytes as text, or interpret raw bytes as data.*   There are techniques like buffering, speculative reads etc., which are more efficient.
+- **BufferedInputStream:** Wraps streams for efficiency with buffering.
 
-**Module 4: Serialization**
+    ```java
+    var din = new DataInputStream(new BufferedInputStream(new FileInputStream("grades.dat")));
+    ```
 
-**4.1 What is Serialization?**Serialization is the process of converting an object into a stream of bytes. Deserialization is the
- opposite process of reconstructing the object from a stream of bytes.
+- **PushbackInputStream:** Supports speculative reads with `read()` and `unread()`.
 
-**4.2 Reading and Writing Objects**   - We know that Java allows to read and write binary data using DataInputStream and DataOutputStream.  - However, we need another output stream type to read and write objects.   - Java provides ObjectOutputStream and ObjectInputStream for this purpose.
+    ```java
+    var pbin = new PushbackInputStream(new BufferedInputStream(new FileInputStream("grades.dat")));
+    ```
 
-* **Using `ObjectOutputStream`:**
+### 3.12 Summary of Input/Output Streams
 
-To write objects:```java
-  var out = new ObjectOutputStream(
-          new FileOutputStream("employee.dat")
-        );
-```To write out objects, use `writeObject()`:```java
-        var emp = new Employee(...);
-        var boss = new Manager(...);
-        out.writeObject(emp);
-        out.writeObject(boss);
- ```* **Using `ObjectInputStream`:**To read back the objects, you will have to read back objects using `readObject()` in the same order they were written using:```java
- var in = new ObjectInputStream(
-      new FileInputStream("employee.dat")
-      );
- var e1 = (Employee) in.readObject();
- var e2 = (Manager) in.readObject();
-```*   **The `Serializable` Interface**:   - For an object to be serializable, the class must implement the marker interface, Serializable.   - This interface doesn't have methods itself, it just signifies that the class' objects are serializable.
+Java's I/O streams allow for efficient data handling by separating concerns and chaining different streams together. Techniques like buffering enhance performance significantly.
 
- ```java
- public class Employee implements Serializable { ... }
-```
+---
 
-**4.3 How Serialization Works**
+## Module 4: Serialization
 
-*   **`ObjectOutputStream`:**  Examines all the fields of the object and saves their contents. *   **`ObjectInputStream`:** "Reconstructs" the object, effectively calls a constructor.
+### 4.1 What is Serialization?
 
-**4.4 Object Sharing and Serial Numbers**
+Serialization converts an object into a stream of bytes, while deserialization reconstructs it.
 
-*   What happens when many objects share the same object as an instance variable?   -  For example, if two managers share the same secretary.   -   Each object is assigned a serial number, hence serialization.  -   When the object is first encountered, its data is written to the output stream.   - If the object is encountered again, it is recorded using the serial number.  -  When you read, the reverse process occurs.
+### 4.2 Reading and Writing Objects
 
-**4.5 Customizing Serialization**
+Java uses `ObjectOutputStream` and `ObjectInputStream` for serialization.
 
-Sometimes, you might want to exclude some fields from being serialized:
+- **Using `ObjectOutputStream`:**
 
-*   **`transient` keyword**:    -   Mark fields that should not be serialized as `transient`.    -   Commonly used for file handles, database connections, and other resources tied to a specific process or runtime environment.```java
-      public class LabeledPoint implements Serializable {
-        private String label;
-        private transient Point2D.Double point;
-      }
-```*   **Overriding `writeObject()` and `readObject()`**:   - To further customize how an object is serialized and deserialized you can define these two methods.  - You can call defaultWriteObject() in this method to serialize all non-transient fields. Then add the necessary logic to serialize the transient members.   -  Example, where we are serializing the transient `point`.```java
-   private void writeObject(ObjectOutputStream out) throws IOException {
-     out.defaultWriteObject();
+    ```java
+    var out = new ObjectOutputStream(new FileOutputStream("employee.dat"));
+    var emp = new Employee(...);
+    out.writeObject(emp);
+    ```
+
+- **Using `ObjectInputStream`:**
+
+    ```java
+    var in = new ObjectInputStream(new FileInputStream("employee.dat"));
+    var e1 = (Employee) in.readObject();
+    ```
+
+- **The `Serializable` Interface:** Classes must implement `Serializable` to enable serialization.
+
+    ```java
+    public class Employee implements Serializable { ... }
+    ```
+
+### 4.3 How Serialization Works
+
+- **`ObjectOutputStream`:** Saves field contents.
+- **`ObjectInputStream`:** Reconstructs the object.
+
+### 4.4 Object Sharing and Serial Numbers
+
+Objects shared among many objects are tracked using serial numbers to ensure only a single copy is archived.
+
+### 4.5 Customizing Serialization
+
+- **`transient` keyword:** Excludes fields from serialization.
+
+    ```java
+    private transient int counter;
+    ```
+
+- **Overriding `writeObject()` and `readObject()`:**
+
+    ```java
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
         out.writeDouble(point.getX());
-        out.writeDouble(point.getY());
-   }
+    }
 
     private void readObject(ObjectInputStream in) throws IOException {
         in.defaultReadObject();
         double x = in.readDouble();
-        double y = in.readDouble();
-        point = new Point2D.Double(x, y);
     }
-  ```
+    ```
 
-**4.6 Handle with Care**
+### 4.6 Handle with Care
 
-*   **Version Control:**  - Older serialized objects may become incompatible with newer versions of the class.  - Some mechanisms are available for version control but there are still some pitfalls possible.*   **Security Risk:**     -   Deserialization involves creating an object, implicitly calls a constructor, and therefore might execute code from an external source which is always a security risk.
+- **Version Control:** Serialized objects can become incompatible with newer classes.
+- **Security Risk:** Deserialization can execute potentially harmful code.
 
-**4.7 Summary of Serialization**
+### 4.7 Summary of Serialization
 
-*   Serialization lets us export and import objects, with state.*   Use ObjectOutputStream and ObjectInputStream to write and read objects.*   Serial numbers are used to ensure only a single copy of each shared object is archived.*   Mark fields that should not be serialized using `transient` keyword.*   Customize serialization behavior with  `writeObject()` and `readObject()`.*   Serialization carries risks of version control and also security risk as arbitrary code can get executed.
+Serialization allows for object persistence and transfer, but care must be taken with version control and security.
 
-**Module 5: Concurrency with Threads and Processes**
+---
 
-**5.1 Understanding Threads and Processes:**
+## Module 5: Concurrency with Threads and Processes
 
-*   **Multiprocessing**: A single processor can execute several computations “in parallel” through *time-slicing*. It rapidly switches between different processes, providing the illusion of parallelism.*   **Processes**: Processes are independent computations, each with its own private set of local variables.*   **Threads**: Threads exist within a single process, are like lightweight processes that can execute concurrently, but share the same local variables. This is known as “shared memory.” Context switches between threads are usually faster than switches between processes.
+### 5.1 Understanding Threads and Processes
 
-**5.2 Shared Variables and Race Conditions**
+- **Multiprocessing:** Different computations execute "in parallel" through time-slicing, creating an illusion of parallelism.
+- **Processes:** Independent computations with private variables.
+- **Threads:** Lightweight processes within a single process, sharing variables and memory.
 
-*   **Shared Variables**: Threads in a multi-threaded application often share variables, which is an efficient way to enable communication among threads.*   **The Problem**: Accessing or updating shared variables concurrently can lead to inconsistent data and unpredictable outcomes, known as a *race condition*.   - We also showed that we could accidentally or unintentionally cancel a download if the shared variable is not properly managed.*   **Example**:    -  Download thread and user-interface thread run in parallel.    -  Shared boolean variable `terminate` indicates whether the download should be interrupted.    -  `terminate` is initially false.    -  Clicking Stop sets it to true.    - Download thread periodically checks the value of this variable and aborts if it is set to true.*  **Avoiding Race Conditions**: Shared variables must be updated consistently to avoid race conditions.
+### 5.2 Shared Variables and Race Conditions
 
-**5.3 Creating Threads in Java**
+- **Shared Variables:** Efficient for communication but prone to unpredictability and inconsistencies, known as race conditions.
 
-Java offers two primary ways to create and manage threads:
+### 5.3 Creating Threads in Java
 
-*   **Extending the `Thread` Class**:    - Create a class which extends the `Thread` class.     -  Define a `run()` method in this class, as this is the point from where parallel execution begins.   - Then create an instance of this class and call start to create a thread and execute the `run()` method in parallel.```java
-  public class Parallel extends Thread {
-       private int id;
-       public Parallel(int i) {
-           id = i;
-       }
-       public void run() {
+Java offers two main ways to create and manage threads.
+
+- **Extending the `Thread` Class:**
+
+    ```java
+    public class Parallel extends Thread {
+        private int id;
+        public Parallel(int i) { id = i; }
+        public void run() {
             for (int j = 0; j < 100; j++) {
-                  System.out.println("My id is " + id);
-               }
-            try{
-               sleep(1000);
-          }
-        catch (InterruptedException e){}
-       }
-   }
-
-public class TestParallel{
-  public static void main(String[] args){
-        Parallel p[] = new Parallel[5];
-        for(int i =0; i < 5; i++){
-           p[i] = new Parallel(i);
-            p[i].start();  //Start p[i].run() in a concurrent thread
-        }
-  }
-}
-```*   **Implementing the `Runnable` Interface:**    - Create a class implementing `Runnable` interface.    - Define the `run()` method.   - Create a Thread using an instance of this class.  - Then call the `start()` method of the created thread to make it execute in parallel.```java
-  public class Parallel implements Runnable {
-    private int id;
-    public Parallel(int i) {
-      id = i;
-    }
-    public void run() {
-     for (int j=0; j < 100; j++) {
-       System.out.println("My id is " + id);
-     }
-    }
-  }
-   public class TestParallel{
-       public static void main(String[] args){
-         Parallel[] p = new Parallel[5];
-        Thread [] t = new Thread[5];
-
-         for (int i =0; i < 5; i++){
-              p[i] = new Parallel(i);
-             t[i] = new Thread(p[i]);
-            t[i].start();  // Start off p[i].run() using t[i].start()
+                System.out.println("My id is " + id);
+            }
         }
     }
-}
-```*   **Important Points**    - Directly calling `run()` executes it sequentially in the same thread, not in a parallel one.   - A `start()` method initiates the `run()` method in a separate thread, concurrently.     -   Use `Thread.sleep(t)` method to suspend a thread for  `t` milliseconds; `InterruptedException` needs to be handled for this.
+    
+    public class TestParallel {
+        public static void main(String[] args) {
+            Parallel p[] = new Parallel[5];
+            for(int i = 0; i < 5; i++) {
+                p[i] = new Parallel(i);
+                p[i].start();
+            }
+        }
+    }
+    ```
 
-*   **Static Functions and `Thread.sleep()`** The sleep function, if called from a class that does not extend a thread will have to called as a static function.
+- **Implementing the `Runnable` Interface:**
 
-**5.4 Java Thread States**
+    ```java
+    public class Parallel implements Runnable {
+        private int id;
+        public Parallel(int i) { id = i; }
+        public void run() {
+            for (int j = 0; j < 100; j++) {
+                System.out.println("My id is " + id);
+            }
+        }
+    }
 
-A Java thread can be in one of six states:
+    public class TestParallel {
+        public static void main(String[] args) {
+            Parallel[] p = new Parallel[5];
+            Thread[] t = new Thread[5];
+            for (int i = 0; i < 5; i++) {
+                p[i] = new Parallel(i);
+                t[i] = new Thread(p[i]);
+                t[i].start();
+            }
+        }
+    }
+    ```
 
-*   **New:** Thread has been created but not started yet*   **Runnable:** Thread has been started and is ready to be scheduled. It does not mean it is currently running.*   **Blocked:** Thread is waiting to acquire a lock, will be unblocked when lock is released.*   **Waiting:** Thread has suspended itself with  `wait()`, waiting for a notification signal (using `notify()` or `notifyAll()`).*   **Timed Wait:** Thread has suspended itself for a specific amount of time. For instance, with `sleep(t)`. The thread is released when the sleep timer expires.*   **Dead:** Thread has finished executing.
+### 5.4 Java Thread States
 
-*   **Determining Thread State:** You can query the state of a thread by calling `t.getState()`.
+Java threads can be in one of six states: New, Runnable, Blocked, Waiting, Timed Waiting, and Dead.
 
-**5.5 Interrupts**
+- **Determining Thread State:** Use `t.getState()` to query a thread's state.
 
-*   **Interrupting a Thread:** A thread can interrupt another using the `interrupt()` method.*   **Checking Interrupt Status:**   - The interrupted thread should check if it has been interrupted using `interrupted()` and clear the flag or `isInterrupted()` without clearing the flag.*  **InterruptedException:** You can handle the interruptions by throwing or catching an InterruptedException in wait or sleep methods.
+### 5.5 Interrupts
 
-**5.6 Yield and Join Methods*** **Yield():** A thread can give up its running status using the static method, yield(), where you transfer the control to another thread if possible.*  **Join():** A thread can also wait for another thread to terminate using the t.join().
+- **Interrupting a Thread:** A thread can interrupt another using `interrupt()`.
+- **Checking Interrupt Status:** Use `interrupted()` or `isInterrupted()` to manage interruptions.
 
-**Summary of Module**
+### 5.6 Yield and Join Methods
 
-*   We explored various aspects of the Thread and Runnable class and how to make concurrent programming possible in Java, by introducing the following ideas.   - We talked about shared variables and how the shared variables if not used properly can lead to race conditions.  - We also looked at ways to resolve a race condition including implementing proper synchronization.    - We also saw the life cycle of threads including various thread states and handling interruptions.
+- **Yield():** Allows a thread to give up running status.
+- **Join():** Waits for another thread to terminate.
 
-**Module 6: Race Conditions and Mutual Exclusion**
+---
 
-**6.1 Understanding Race Conditions**
+## Module 6: Race Conditions and Mutual Exclusion
 
-*   **Concurrent Updates:** A race condition occurs when multiple threads try to update a shared variable concurrently, leading to unpredictable and possibly inconsistent outcomes.*   **Example:**  - Consider two threads incrementing the same shared variable, expecting it to increase by 2.   - Due to time-slicing, updates can be interleaved, so you might end up with the variable increasing by 1 or less and in very unusual cases more.   - So, in a concurrent update of a shared variable there is unpredictable outcome.
+### 6.1 Understanding Race Conditions
 
-**6.2 Mutual Exclusion**
+- **Concurrent Updates:** Multiple threads updating a shared variable concurrently can cause data inconsistencies.
 
-*   **The Goal:** To avoid race conditions, we need to guarantee that only one thread at a time can access and modify a critical section of code where shared variables are updated.*   **Critical Sections:**  Critical sections are portions of the code where shared variables are accessed and updated.*   **Mutual Exclusion:** Ensuring that only one thread can execute inside a critical region at any given point in time.
+### 6.2 Mutual Exclusion
 
-**6.3 Initial Approaches (and their Problems):**
+- **The Goal:** Ensure only one thread accesses a critical section at a time to avoid race conditions.
 
-*   **First Attempt (using `turn` variable):** -   Use a shared variable to indicate whose turn it is.   - This ensures that only one thread has access at a given time, but it is not a very practical solution and leads to starvation as one thread might get locked out if other thread dies. ```java
-      Thread 1               Thread 2
-      ...                    ...
-      while (turn != 1)     while (turn != 2)
-        { // Busy wait         { // Busy wait
-        }                    }
-      // Enter critical sec   // Enter critical sec
-      ...                    ...
-      // Leave critical sec   // Leave critical sec
-     turn = 2;              turn = 1;
-      ...                    ...
-```*   **Second Attempt (using `request_1` and `request_2`):**  - Use two variables each indicating the request of each thread and loop around the variable for each other's request.   -  This method gives mutual exclusion, but if both threads try to access critical sections simultaneously, they will block each other, leading to a deadlock.
+### 6.3 Initial Approaches (and their Problems)
 
-**6.4 Peterson's Algorithm:**
+- **First Attempt (using `turn`):** Leads to starvation if one thread dies.
+- **Second Attempt (using `request_1` and `request_2`):** Can lead to deadlock.
 
-*   A clever approach combining the above two approaches.
+### 6.4 Peterson's Algorithm
 
-  ```java
-   Thread 1             Thread 2
-   ...                 ...
-   request_1 = true;  request_2 = true;
-  turn = 2;           turn = 1;
-   while (request_2 &&    while (request_1 &&
-           turn != 1){         turn != 2) {
-    // "Busy" wait        // "Busy" wait
-       }                    }
-  // Enter critical section // Enter critical section
-   ...                 ...
-  // Leave critical section  // Leave critical section
-   request_1 = false;   request_2 = false;
-   ...                  ...
-```*   **Combines Previous Approaches:** Combines the request mechanism with a turn variable.
+Combines `turn` and request variables to achieve mutual exclusion without deadlock.
 
-*   **Key Idea**:    - If both try simultaneously, the `turn` variable decides who goes through the critical section.   - If only one is alive, the request variable for the alive thread remains false, and turn is not relevant.
+### 6.5 Beyond Two Processes
 
-**6.5 Beyond Two Processes**
+Generalizing Peterson's algorithm to more than two threads requires complex solutions like Lamport's Bakery Algorithm.
 
-*   Generalizing Peterson's algorithm to more than two threads is not trivial.*   For n process mutual exclusion, other solutions exist such as Lamport's Bakery Algorithm*   **Lamport's Bakery Algorithm**   - Each new process picks up a token(increments a counter) that is larger than all waiting processes.   - Lowest token number gets served next, and if there are ties then break ties using some other rule.  -  This might appear atomic, however, a token counter is not atomic. Also, you need special handling for different situations.*   For each type of situations need to find clever solutions and also need to argue the correctness in each case.*  **Higher-Level Support**: Instead of manual low level control, it is better to provide higher level support in programming languages for synchronization.
+### 6.6 Summary of Module
 
-**6.6 Summary of Module**
+- **Race Conditions:** Can lead to unpredictable outcomes.
+- **Mutual Exclusion:** Ensures only one thread accesses critical sections at a time, reducing race conditions.
 
-*   Concurrent updates of shared variables can lead to data inconsistencies.  - This is called race conditions.*   To prevent race conditions, we need to control behavior of threads and also regulate their updates.*   Critical sections are the sections of the code where shared variables are updated.*   Mutual exclusion ensures that only one thread at a time can be in a critical section.*   Protocols like Peterson’s algorithm uses shared variables to get mutual exclusion but these clever protocols have limitations and requires more general support.
+---
 
-**Module 7: Test and Set, Semaphores, and Monitors**
+## Module 7: Test and Set, Semaphores, and Monitors
 
-**7.1 The Heart of Race Conditions: Test-and-Set**
+### 7.1 The Heart of Race Conditions: Test-and-Set
 
-*   The fundamental issue preventing consistent concurrent updates of shared variables is the *test-and-set* problem. To increment a counter, you check the current value and add 1. In multiple threads, this can be problematic if more than one thread reads the same old value and updates based on it, leading to loss of updates.*   **Atomic Operation:** We need to combine the check and set operations as a single, atomic, indivisible step. We can't achieve this in pure Java without language primitives.
+- **Atomic Operation:** Combining check and set operations into an atomic step is necessary for consistent updates.
 
-**7.2 Semaphores***   **Definition:**  A semaphore is an integer variable, with atomic test and set operations.  - It provides a programming language support for mutual exclusion.
+### 7.2 Semaphores
 
-*   **Dijkstra's Semaphores**:   - P(s) from Dutch passeren, to pass which decrements the value of S if it is positive and blocks otherwise, to wait for S to become positive.   - V(s) from Dutch vrygeven, to release, which increments S and wakes up waiting threads.
+- **Definition:** A semaphore is an integer variable with atomic test and set operations, providing a mechanism for mutual exclusion.
 
-*   **P(S) atomically executes the following:**
+### 7.3 Problems with Semaphores
 
-```java
-  if (S > 0)
-    decrement S;
-  else
-      wait for S to become positive;
-```*   **V(S) atomically executes the following:**
+- **Low Level:** Lack of enforcement and relationship with critical regions makes semaphores prone to errors.
 
-```java
- if(there are threads waiting
-   for S to become positive)
-    wake one of them up; // choice is nondeterministic
- else
-    increment S;
-```
+### 7.4 Monitors
 
-*   **Using Semaphores for Mutual Exclusion:**
+- **Definition:** A high-level synchronization primitive attaching synchronization control to protected data.
 
- ```java
-   Thread 1         Thread 2
-  P(S);           P(S);
-  // Enter critical section   // Enter critical section
-  ...              ...
-// Leave critical section // Leave critical section
-  V(S);             V(S);
-  ...              ...
-```
+### 7.5 Enhancing Monitors
 
-*   **Guarantees of Semaphores**: Mutual exclusion, freedom from starvation and freedom from deadlock.
+- **Using `wait()` and `notify()`:** Provide a mechanism for threads to suspend and resume based on changing conditions.
 
-**7.3 Problems with Semaphores:**
+### 7.6 Monitors in Java
 
-*   **Low Level:** Semaphores are too low level.*   **No Clear Relationship:** There is no clear relationship between a semaphore and the critical region that it protects.*   **Cooperation:** All threads must cooperate to correctly reset the semaphore.*   **Enforcement:** It cannot enforce each P(S) has a matching V(S).*   **Incorrect Operations:** You can execute a V(S) without having done a P(S).
+- **Synchronized Keyword:** Ensures only one thread executes a synchronized method at a time.
 
-**7.4 Monitors**
+### 7.7 Reentrant Locks
 
-*   **Definition:** A monitor is a high-level synchronization primitive, which attaches synchronization control to the data that is being protected.*   **Per Brinch Hansen and CAR Hoare:** Monitors were introduced by Per Brinch Hansen and CAR Hoare.*  **Object-Oriented Class:**  A monitor is like a class in an object-oriented language. It has:    - Data definition: Access to which is restricted across threads.    - A collection of functions operating on this data all are implicitly mutually exclusive.*  **Mutual Exclusion:** A monitor guarantees mutual exclusion in that, if one function is active, any other function will have to wait for it to finish.*   **External Queue:** There is an implicit queue associated with each monitor which contains all processes waiting for access.
+- **ReentrantLock:** Allows a thread holding a lock to reacquire it multiple times, managing access to critical sections.
 
-**7.5 Enhancing Monitors**
+---
 
-Our definition of a monitor may be too restrictive sometimes.
+## Module 8: Turning Optionals into a Stream and Collecting Stream Results
 
-*   **The Need for Wait and Notify:**    - Need for a mechanism for a thread to suspend itself and give up the monitor.    - A suspended process is waiting for monitor to change its state.
+### 8.1 Turning an Optional into a Stream
 
-*   **Internal Queue:**  Have a separate internal queue, as opposed to external queue where initially blocked threads wait.  - This requires a dual operation to notify and wake up suspended processes.
+- **`flatMap` method:** Converts an optional into a stream for further processing.
 
-*   **Using `wait()` and `notify()`**:  -  Use  `wait()` for a thread to suspend itself.  -   Use `notify()` to resume a waiting process.  -  A process that calls wait() is put in a separate internal queue. When a notify() happens, a waiting process from this internal queue is awakened.*  **Signal and Exit:**    - Notifying process immediately exits the monitor.    -    `notify()` must be the last instruction*   **Signal and Wait**: -   Notifying process swaps roles and goes into the internal queue of the monitor.*   **Signal and Continue**: -  Notifying process keeps control till it completes then one of the notified processes steps in.
+    ```java
+    Stream<User> users = ids.map(Users::lookup)
+                            .flatMap(Optional::stream);
+    ```
 
-* **Condition Variables:**  - To make monitors more flexible, more than one internal queue is required, with the ability to conditionally notify a specific queue.   - These internal queues are managed using a condition variable.   - This also provides more control over which process is woken up.  - After a transfer you can notify only the queue waiting on target account of the transfer to change.
+### 8.2 Collecting Stream Results
 
-**7.6 Monitors in Java***  **Synchronized Keyword**   - The synchronization is achieved by using the synchronized keyword.    -  A synchronized method will execute atomically.  - It ensures that only one thread at a time can execute a synchronized method on a given object.*  **Each Object has a Lock:**   -  Each object in Java has a built-in lock (also known as intrinsic lock or monitor lock).   - When a thread calls a synchronized method, it has to acquire the lock associated with the object.  -  The thread automatically releases the lock when it leaves the synchronized method (or block) even if it exits due to an exception.*   **Implicit Queue**:  -When a thread waits for a synchronized block, it implicitly goes into an external queue that is associated with the object.*   **Using Wait() and Notify()**:   - Inside a synchronized block, use `wait()` to suspend itself, and allow the thread to relinquish the lock. This will place the thread in an internal queue associated with the object.   -   Use  `notify()` or `notifyAll()` to wake up threads waiting on the object.   - You can abbreviate them by using this.wait(), this.notify(), this.notifyAll().*   **Use wait and notify methods within a while**: When waking up from wait, always check if the condition is still valid, because some other thread might have already changed the state of the variable you are depending on. So, always use a while loop for this.*   **Illegal Monitor State Exception:**  - If you use the wait(), notify() outside the synchronized block you will get an exception.
+Streams are versatile in processing data, but often need conversion back into collections.
 
-**7.7 Reentrant Locks**
+- **forEach():** Applies an action to each stream element.
 
-*    ReentrantLock is another implementation of lock, different from intrinsic lock used in synchronized blocks.   -  Here you need to explicitly lock, and then unlock using the lock() and unlock() method and similar to semaphores you need to use finally blocks to release in case you get exceptions.
-
-* **Why Reentrant?**    - A thread holding a lock can reacquire it multiple times, and such nested access is allowed. For example, one synchronized method can call another synchronized method which are in the same object.    -  The lock has a hold count, which increments with every lock(), and decrements with every unlock(), and the lock is released when the count is 0.
-
-*  **Difference with semaphores**: Similar to semaphores they also ensure mutual exclusion. The difference is that you control the P(s) and V(s) calls using a separate semaphore variable, which makes it more low level and hence more prone to errors. ReentrantLock provides you a higher level control, with implicit management of locking and unlocking through the try-finally block, which forces you to properly unlock the lock.
-
-**Module 8: Turning Optionals into a Stream and Collecting Stream Results**
-
-**8.1 Turning an Optional into a Stream**
-
-*   **The `flatMap` method:** The flatMap method can be used to convert an optional into a stream.   -  This enables a stream to handle potentially missing values using optionals and seamlessly integrate with the rest of the processing.   - If the optional contains value it produces a stream with a single value otherwise it results in empty stream.   ```java
-    Stream<String> ids = ...;
-    Stream<User> users =
-        ids.map(Users::lookup)
-        .flatMap(Optional::stream);
-   ```*   **lookup():**   - The lookup() method might return a User if a valid username is given.   - If you are getting a list of ids you can convert them to stream and using map function along with lookup you can generate stream of Optional objects.   - If you are not using optional you will get stream of users but might contain null values.  -  Using flatMap you can get a stream of valid users if lookup returns an Optional.   - Using ofNullable can convert nulls into empty optional and create a stream of optionals and flatMap will convert them to a stream.
-
-**8.2 Collecting Stream Results**
-
-Streams are intended for data processing, but we often need to output the results into specific data structures. This section covers techniques to collect stream data back into collections.
-
-*   **forEach():** Perform an action for each stream element:```java
+    ```java
     mystream.forEach(System.out::println);
-```*   **toArray():** Convert a stream into an array:```java
-    Object[] result = mystream.toArray();
+    ```
+
+- **toArray():** Converts a stream into an array.
+
+    ```java
     String[] result = mystream.toArray(String[]::new);
-```*   **collect(Collectors.toList()):** Convert a stream into a List:```java
- List<String> result = mystream.collect(Collectors.toList());
-```*   **collect(Collectors.toSet()):** Convert a stream into a Set:```java
-  Set<String> result = mystream.collect(Collectors.toSet());
-```*  **collect(Collectors.toCollection(Supplier<C> collectionFactory):** To create a collection using the specific constructor. ```java
-       TreeSet<String> result = stream.collect(
-           Collectors.toCollection(TreeSet::new)
-       );
-```
+    ```
 
-**8.3 Stream Summaries**
+- **collect(Collectors.toList()):** Converts a stream into a List.
 
-*   **Summarizing Operations:** Used to get several summary results from a stream of numbers.*   **`summarizingInt(ToIntFunction<? super T> mapper)`:** Used with stream of integers and returns a `IntSummaryStatistics` that stores summary of the stream such as `count()`,  `max()`, `min()`, `sum()`, and `average()` .    - Requires mapping function to extract integers from the stream.```java
-    IntSummaryStatistics summary =
-      mystream.collect(
-          Collectors.summarizingInt(String::length)
-      );
-      double averageWordLength = summary.getAverage();
-      double maxWordLength = summary.getMax();
-```*   Similar functions available for double and long such as  `summarizingLong()` and  `summarizingDouble()`  which provides `LongSummaryStatistics` and  `DoubleSummaryStatistics`.
+    ```java
+    List<String> result = mystream.collect(Collectors.toList());
+    ```
 
-**8.4 Converting a Stream to a Map**
+### 8.3 Stream Summaries
 
-*   **`toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valueMapper):`**   - Allows you to collect the stream into a map using a given function to produce key and values from the stream objects.```java
-     Stream<Person> people = ...;
+- **Summarizing Operations:** Extracts summary results from numeric streams.
+
+    ```java
+    IntSummaryStatistics summary = mystream.collect(
+        Collectors.summarizingInt(String::length)
+    );
+    ```
+
+### 8.4 Converting a Stream to a Map
+
+- **`toMap()` Function:** Collects a stream into a Map, providing functions for keys and values.
+
+    ```java
     Map<Integer, String> idToName = people.collect(
-          Collectors.toMap(
-          Person::getId,
-          Person::getName
-     );
-```*  If you want to store entire objects as values, then use Function.identity()  ```java
- Stream<Person> people = ...;
-    Map<Integer, Person> idToPerson = people.collect(
-        Collectors.toMap(
-            Person::getId,
-            Function.identity()
-      );
-```*  **Handling Duplicate Keys:**   -  If there are duplicate keys, a IllegalStateException exception will be thrown. You can handle that by using a  merge function, which takes the old value and new value and returns what is to be stored into the map in case of duplicates. For example, here we are choosing the existing value when we have duplicate key. ```java
-      Stream<Person> people = ...;
+        Collectors.toMap(Person::getId, Person::getName)
+    );
+    ```
+
+- **Handling Duplicate Keys:**
+
+    ```java
     Map<String, Integer> nameToID = people.collect(
-      Collectors.toMap(
+        Collectors.toMap(
             Person::getName,
             Person::getId,
             (existingValue, newValue) -> existingValue
-           )
-      );
-  ```
+        )
+    );
+    ```
 
-**8.5 Grouping and Partitioning Values**
+### 8.5 Grouping and Partitioning Values
 
-*  **groupingBy(Function<? super T, ? extends K> classifier)**   - Used to group data by category. For example group people by name.    ```java
-        Stream<Person> people = ...;
-        Map<String, List<Person>> nameToPersons =
-              people.collect(
-                 Collectors.groupingBy(
-                      Person::getName
-                   )
-        );
-   ```*  **partitioningBy(Predicate<? super T> predicate)**   -   Used to partition data based on a condition, resulting in two list based on the condition. For example, to separate people whose names starts with 'A' from rest.```java
-        Stream<Person> people = ...;
-      Map<Boolean, List<Person>> aAndOtherPersons =
-        people.collect(
-            Collectors.partitioningBy(
-            p -> p.getName().substr(0,1).equals("A")
-           )
-        );
-      List<Person> startingLetterA =
-              aAndOtherPersons.get(true);
-```
+- **Grouping by Key:**
 
-**Module 7: Summary**
+    ```java
+    Map<String, List<Person>> nameToPersons = people.collect(
+        Collectors.groupingBy(Person::getName)
+    );
+    ```
 
-*   We have gone through a great depth and learnt how powerful Optional Types can be in handling situations where we might have to handle missing data.*   We also looked at powerful ways of collecting streams into different data structure based on your need.
+- **Partitioning Using a Predicate:**
 
-**Conclusion**
+    ```java
+    Map<Boolean, List<Person>> aAndOtherPersons = people.collect(
+        Collectors.partitioningBy(p -> p.getName().startsWith("A"))
+    );
+    ```
 
-Week 9 has laid down essential concepts for dealing with concurrency and data handling in Java.  By now you have a solid understanding of how to use various tools provided in Java to manage the multithreading challenges in building real-world applications. You also know how to manage the data and process it efficiently with streams, optionals and collectors.
+---
+
+## Conclusion
+
+Week 9 has provided a deep dive into the essential concepts of concurrency and data handling in Java. By mastering threads, synchronization, and data handling with streams and optionals, you're equipped to build robust, scalable applications in the real world.
