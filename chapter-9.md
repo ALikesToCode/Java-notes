@@ -411,3 +411,379 @@ writeChars, writeByte
 **Module 4: Serialization**
 
 **4.1 What is Serialization?**Serialization is the process of converting an object into a stream of bytes. Deserialization is the
+ opposite process of reconstructing the object from a stream of bytes.
+
+**4.2 Reading and Writing Objects**   - We know that Java allows to read and write binary data using DataInputStream and DataOutputStream.  - However, we need another output stream type to read and write objects.   - Java provides ObjectOutputStream and ObjectInputStream for this purpose.
+
+* **Using `ObjectOutputStream`:**
+
+To write objects:```java
+  var out = new ObjectOutputStream(
+          new FileOutputStream("employee.dat")
+        );
+```To write out objects, use `writeObject()`:```java
+        var emp = new Employee(...);
+        var boss = new Manager(...);
+        out.writeObject(emp);
+        out.writeObject(boss);
+ ```* **Using `ObjectInputStream`:**To read back the objects, you will have to read back objects using `readObject()` in the same order they were written using:```java
+ var in = new ObjectInputStream(
+      new FileInputStream("employee.dat")
+      );
+ var e1 = (Employee) in.readObject();
+ var e2 = (Manager) in.readObject();
+```*   **The `Serializable` Interface**:   - For an object to be serializable, the class must implement the marker interface, Serializable.   - This interface doesn't have methods itself, it just signifies that the class' objects are serializable.
+
+ ```java
+ public class Employee implements Serializable { ... }
+```
+
+**4.3 How Serialization Works**
+
+*   **`ObjectOutputStream`:**  Examines all the fields of the object and saves their contents. *   **`ObjectInputStream`:** "Reconstructs" the object, effectively calls a constructor.
+
+**4.4 Object Sharing and Serial Numbers**
+
+*   What happens when many objects share the same object as an instance variable?   -  For example, if two managers share the same secretary.   -   Each object is assigned a serial number, hence serialization.  -   When the object is first encountered, its data is written to the output stream.   - If the object is encountered again, it is recorded using the serial number.  -  When you read, the reverse process occurs.
+
+**4.5 Customizing Serialization**
+
+Sometimes, you might want to exclude some fields from being serialized:
+
+*   **`transient` keyword**:    -   Mark fields that should not be serialized as `transient`.    -   Commonly used for file handles, database connections, and other resources tied to a specific process or runtime environment.```java
+      public class LabeledPoint implements Serializable {
+        private String label;
+        private transient Point2D.Double point;
+      }
+```*   **Overriding `writeObject()` and `readObject()`**:   - To further customize how an object is serialized and deserialized you can define these two methods.  - You can call defaultWriteObject() in this method to serialize all non-transient fields. Then add the necessary logic to serialize the transient members.   -  Example, where we are serializing the transient `point`.```java
+   private void writeObject(ObjectOutputStream out) throws IOException {
+     out.defaultWriteObject();
+        out.writeDouble(point.getX());
+        out.writeDouble(point.getY());
+   }
+
+    private void readObject(ObjectInputStream in) throws IOException {
+        in.defaultReadObject();
+        double x = in.readDouble();
+        double y = in.readDouble();
+        point = new Point2D.Double(x, y);
+    }
+  ```
+
+**4.6 Handle with Care**
+
+*   **Version Control:**  - Older serialized objects may become incompatible with newer versions of the class.  - Some mechanisms are available for version control but there are still some pitfalls possible.*   **Security Risk:**     -   Deserialization involves creating an object, implicitly calls a constructor, and therefore might execute code from an external source which is always a security risk.
+
+**4.7 Summary of Serialization**
+
+*   Serialization lets us export and import objects, with state.*   Use ObjectOutputStream and ObjectInputStream to write and read objects.*   Serial numbers are used to ensure only a single copy of each shared object is archived.*   Mark fields that should not be serialized using `transient` keyword.*   Customize serialization behavior with  `writeObject()` and `readObject()`.*   Serialization carries risks of version control and also security risk as arbitrary code can get executed.
+
+**Module 5: Concurrency with Threads and Processes**
+
+**5.1 Understanding Threads and Processes:**
+
+*   **Multiprocessing**: A single processor can execute several computations “in parallel” through *time-slicing*. It rapidly switches between different processes, providing the illusion of parallelism.*   **Processes**: Processes are independent computations, each with its own private set of local variables.*   **Threads**: Threads exist within a single process, are like lightweight processes that can execute concurrently, but share the same local variables. This is known as “shared memory.” Context switches between threads are usually faster than switches between processes.
+
+**5.2 Shared Variables and Race Conditions**
+
+*   **Shared Variables**: Threads in a multi-threaded application often share variables, which is an efficient way to enable communication among threads.*   **The Problem**: Accessing or updating shared variables concurrently can lead to inconsistent data and unpredictable outcomes, known as a *race condition*.   - We also showed that we could accidentally or unintentionally cancel a download if the shared variable is not properly managed.*   **Example**:    -  Download thread and user-interface thread run in parallel.    -  Shared boolean variable `terminate` indicates whether the download should be interrupted.    -  `terminate` is initially false.    -  Clicking Stop sets it to true.    - Download thread periodically checks the value of this variable and aborts if it is set to true.*  **Avoiding Race Conditions**: Shared variables must be updated consistently to avoid race conditions.
+
+**5.3 Creating Threads in Java**
+
+Java offers two primary ways to create and manage threads:
+
+*   **Extending the `Thread` Class**:    - Create a class which extends the `Thread` class.     -  Define a `run()` method in this class, as this is the point from where parallel execution begins.   - Then create an instance of this class and call start to create a thread and execute the `run()` method in parallel.```java
+  public class Parallel extends Thread {
+       private int id;
+       public Parallel(int i) {
+           id = i;
+       }
+       public void run() {
+            for (int j = 0; j < 100; j++) {
+                  System.out.println("My id is " + id);
+               }
+            try{
+               sleep(1000);
+          }
+        catch (InterruptedException e){}
+       }
+   }
+
+public class TestParallel{
+  public static void main(String[] args){
+        Parallel p[] = new Parallel[5];
+        for(int i =0; i < 5; i++){
+           p[i] = new Parallel(i);
+            p[i].start();  //Start p[i].run() in a concurrent thread
+        }
+  }
+}
+```*   **Implementing the `Runnable` Interface:**    - Create a class implementing `Runnable` interface.    - Define the `run()` method.   - Create a Thread using an instance of this class.  - Then call the `start()` method of the created thread to make it execute in parallel.```java
+  public class Parallel implements Runnable {
+    private int id;
+    public Parallel(int i) {
+      id = i;
+    }
+    public void run() {
+     for (int j=0; j < 100; j++) {
+       System.out.println("My id is " + id);
+     }
+    }
+  }
+   public class TestParallel{
+       public static void main(String[] args){
+         Parallel[] p = new Parallel[5];
+        Thread [] t = new Thread[5];
+
+         for (int i =0; i < 5; i++){
+              p[i] = new Parallel(i);
+             t[i] = new Thread(p[i]);
+            t[i].start();  // Start off p[i].run() using t[i].start()
+        }
+    }
+}
+```*   **Important Points**    - Directly calling `run()` executes it sequentially in the same thread, not in a parallel one.   - A `start()` method initiates the `run()` method in a separate thread, concurrently.     -   Use `Thread.sleep(t)` method to suspend a thread for  `t` milliseconds; `InterruptedException` needs to be handled for this.
+
+*   **Static Functions and `Thread.sleep()`** The sleep function, if called from a class that does not extend a thread will have to called as a static function.
+
+**5.4 Java Thread States**
+
+A Java thread can be in one of six states:
+
+*   **New:** Thread has been created but not started yet*   **Runnable:** Thread has been started and is ready to be scheduled. It does not mean it is currently running.*   **Blocked:** Thread is waiting to acquire a lock, will be unblocked when lock is released.*   **Waiting:** Thread has suspended itself with  `wait()`, waiting for a notification signal (using `notify()` or `notifyAll()`).*   **Timed Wait:** Thread has suspended itself for a specific amount of time. For instance, with `sleep(t)`. The thread is released when the sleep timer expires.*   **Dead:** Thread has finished executing.
+
+*   **Determining Thread State:** You can query the state of a thread by calling `t.getState()`.
+
+**5.5 Interrupts**
+
+*   **Interrupting a Thread:** A thread can interrupt another using the `interrupt()` method.*   **Checking Interrupt Status:**   - The interrupted thread should check if it has been interrupted using `interrupted()` and clear the flag or `isInterrupted()` without clearing the flag.*  **InterruptedException:** You can handle the interruptions by throwing or catching an InterruptedException in wait or sleep methods.
+
+**5.6 Yield and Join Methods*** **Yield():** A thread can give up its running status using the static method, yield(), where you transfer the control to another thread if possible.*  **Join():** A thread can also wait for another thread to terminate using the t.join().
+
+**Summary of Module**
+
+*   We explored various aspects of the Thread and Runnable class and how to make concurrent programming possible in Java, by introducing the following ideas.   - We talked about shared variables and how the shared variables if not used properly can lead to race conditions.  - We also looked at ways to resolve a race condition including implementing proper synchronization.    - We also saw the life cycle of threads including various thread states and handling interruptions.
+
+**Module 6: Race Conditions and Mutual Exclusion**
+
+**6.1 Understanding Race Conditions**
+
+*   **Concurrent Updates:** A race condition occurs when multiple threads try to update a shared variable concurrently, leading to unpredictable and possibly inconsistent outcomes.*   **Example:**  - Consider two threads incrementing the same shared variable, expecting it to increase by 2.   - Due to time-slicing, updates can be interleaved, so you might end up with the variable increasing by 1 or less and in very unusual cases more.   - So, in a concurrent update of a shared variable there is unpredictable outcome.
+
+**6.2 Mutual Exclusion**
+
+*   **The Goal:** To avoid race conditions, we need to guarantee that only one thread at a time can access and modify a critical section of code where shared variables are updated.*   **Critical Sections:**  Critical sections are portions of the code where shared variables are accessed and updated.*   **Mutual Exclusion:** Ensuring that only one thread can execute inside a critical region at any given point in time.
+
+**6.3 Initial Approaches (and their Problems):**
+
+*   **First Attempt (using `turn` variable):** -   Use a shared variable to indicate whose turn it is.   - This ensures that only one thread has access at a given time, but it is not a very practical solution and leads to starvation as one thread might get locked out if other thread dies. ```java
+      Thread 1               Thread 2
+      ...                    ...
+      while (turn != 1)     while (turn != 2)
+        { // Busy wait         { // Busy wait
+        }                    }
+      // Enter critical sec   // Enter critical sec
+      ...                    ...
+      // Leave critical sec   // Leave critical sec
+     turn = 2;              turn = 1;
+      ...                    ...
+```*   **Second Attempt (using `request_1` and `request_2`):**  - Use two variables each indicating the request of each thread and loop around the variable for each other's request.   -  This method gives mutual exclusion, but if both threads try to access critical sections simultaneously, they will block each other, leading to a deadlock.
+
+**6.4 Peterson's Algorithm:**
+
+*   A clever approach combining the above two approaches.
+
+  ```java
+   Thread 1             Thread 2
+   ...                 ...
+   request_1 = true;  request_2 = true;
+  turn = 2;           turn = 1;
+   while (request_2 &&    while (request_1 &&
+           turn != 1){         turn != 2) {
+    // "Busy" wait        // "Busy" wait
+       }                    }
+  // Enter critical section // Enter critical section
+   ...                 ...
+  // Leave critical section  // Leave critical section
+   request_1 = false;   request_2 = false;
+   ...                  ...
+```*   **Combines Previous Approaches:** Combines the request mechanism with a turn variable.
+
+*   **Key Idea**:    - If both try simultaneously, the `turn` variable decides who goes through the critical section.   - If only one is alive, the request variable for the alive thread remains false, and turn is not relevant.
+
+**6.5 Beyond Two Processes**
+
+*   Generalizing Peterson's algorithm to more than two threads is not trivial.*   For n process mutual exclusion, other solutions exist such as Lamport's Bakery Algorithm*   **Lamport's Bakery Algorithm**   - Each new process picks up a token(increments a counter) that is larger than all waiting processes.   - Lowest token number gets served next, and if there are ties then break ties using some other rule.  -  This might appear atomic, however, a token counter is not atomic. Also, you need special handling for different situations.*   For each type of situations need to find clever solutions and also need to argue the correctness in each case.*  **Higher-Level Support**: Instead of manual low level control, it is better to provide higher level support in programming languages for synchronization.
+
+**6.6 Summary of Module**
+
+*   Concurrent updates of shared variables can lead to data inconsistencies.  - This is called race conditions.*   To prevent race conditions, we need to control behavior of threads and also regulate their updates.*   Critical sections are the sections of the code where shared variables are updated.*   Mutual exclusion ensures that only one thread at a time can be in a critical section.*   Protocols like Peterson’s algorithm uses shared variables to get mutual exclusion but these clever protocols have limitations and requires more general support.
+
+**Module 7: Test and Set, Semaphores, and Monitors**
+
+**7.1 The Heart of Race Conditions: Test-and-Set**
+
+*   The fundamental issue preventing consistent concurrent updates of shared variables is the *test-and-set* problem. To increment a counter, you check the current value and add 1. In multiple threads, this can be problematic if more than one thread reads the same old value and updates based on it, leading to loss of updates.*   **Atomic Operation:** We need to combine the check and set operations as a single, atomic, indivisible step. We can't achieve this in pure Java without language primitives.
+
+**7.2 Semaphores***   **Definition:**  A semaphore is an integer variable, with atomic test and set operations.  - It provides a programming language support for mutual exclusion.
+
+*   **Dijkstra's Semaphores**:   - P(s) from Dutch passeren, to pass which decrements the value of S if it is positive and blocks otherwise, to wait for S to become positive.   - V(s) from Dutch vrygeven, to release, which increments S and wakes up waiting threads.
+
+*   **P(S) atomically executes the following:**
+
+```java
+  if (S > 0)
+    decrement S;
+  else
+      wait for S to become positive;
+```*   **V(S) atomically executes the following:**
+
+```java
+ if(there are threads waiting
+   for S to become positive)
+    wake one of them up; // choice is nondeterministic
+ else
+    increment S;
+```
+
+*   **Using Semaphores for Mutual Exclusion:**
+
+ ```java
+   Thread 1         Thread 2
+  P(S);           P(S);
+  // Enter critical section   // Enter critical section
+  ...              ...
+// Leave critical section // Leave critical section
+  V(S);             V(S);
+  ...              ...
+```
+
+*   **Guarantees of Semaphores**: Mutual exclusion, freedom from starvation and freedom from deadlock.
+
+**7.3 Problems with Semaphores:**
+
+*   **Low Level:** Semaphores are too low level.*   **No Clear Relationship:** There is no clear relationship between a semaphore and the critical region that it protects.*   **Cooperation:** All threads must cooperate to correctly reset the semaphore.*   **Enforcement:** It cannot enforce each P(S) has a matching V(S).*   **Incorrect Operations:** You can execute a V(S) without having done a P(S).
+
+**7.4 Monitors**
+
+*   **Definition:** A monitor is a high-level synchronization primitive, which attaches synchronization control to the data that is being protected.*   **Per Brinch Hansen and CAR Hoare:** Monitors were introduced by Per Brinch Hansen and CAR Hoare.*  **Object-Oriented Class:**  A monitor is like a class in an object-oriented language. It has:    - Data definition: Access to which is restricted across threads.    - A collection of functions operating on this data all are implicitly mutually exclusive.*  **Mutual Exclusion:** A monitor guarantees mutual exclusion in that, if one function is active, any other function will have to wait for it to finish.*   **External Queue:** There is an implicit queue associated with each monitor which contains all processes waiting for access.
+
+**7.5 Enhancing Monitors**
+
+Our definition of a monitor may be too restrictive sometimes.
+
+*   **The Need for Wait and Notify:**    - Need for a mechanism for a thread to suspend itself and give up the monitor.    - A suspended process is waiting for monitor to change its state.
+
+*   **Internal Queue:**  Have a separate internal queue, as opposed to external queue where initially blocked threads wait.  - This requires a dual operation to notify and wake up suspended processes.
+
+*   **Using `wait()` and `notify()`**:  -  Use  `wait()` for a thread to suspend itself.  -   Use `notify()` to resume a waiting process.  -  A process that calls wait() is put in a separate internal queue. When a notify() happens, a waiting process from this internal queue is awakened.*  **Signal and Exit:**    - Notifying process immediately exits the monitor.    -    `notify()` must be the last instruction*   **Signal and Wait**: -   Notifying process swaps roles and goes into the internal queue of the monitor.*   **Signal and Continue**: -  Notifying process keeps control till it completes then one of the notified processes steps in.
+
+* **Condition Variables:**  - To make monitors more flexible, more than one internal queue is required, with the ability to conditionally notify a specific queue.   - These internal queues are managed using a condition variable.   - This also provides more control over which process is woken up.  - After a transfer you can notify only the queue waiting on target account of the transfer to change.
+
+**7.6 Monitors in Java***  **Synchronized Keyword**   - The synchronization is achieved by using the synchronized keyword.    -  A synchronized method will execute atomically.  - It ensures that only one thread at a time can execute a synchronized method on a given object.*  **Each Object has a Lock:**   -  Each object in Java has a built-in lock (also known as intrinsic lock or monitor lock).   - When a thread calls a synchronized method, it has to acquire the lock associated with the object.  -  The thread automatically releases the lock when it leaves the synchronized method (or block) even if it exits due to an exception.*   **Implicit Queue**:  -When a thread waits for a synchronized block, it implicitly goes into an external queue that is associated with the object.*   **Using Wait() and Notify()**:   - Inside a synchronized block, use `wait()` to suspend itself, and allow the thread to relinquish the lock. This will place the thread in an internal queue associated with the object.   -   Use  `notify()` or `notifyAll()` to wake up threads waiting on the object.   - You can abbreviate them by using this.wait(), this.notify(), this.notifyAll().*   **Use wait and notify methods within a while**: When waking up from wait, always check if the condition is still valid, because some other thread might have already changed the state of the variable you are depending on. So, always use a while loop for this.*   **Illegal Monitor State Exception:**  - If you use the wait(), notify() outside the synchronized block you will get an exception.
+
+**7.7 Reentrant Locks**
+
+*    ReentrantLock is another implementation of lock, different from intrinsic lock used in synchronized blocks.   -  Here you need to explicitly lock, and then unlock using the lock() and unlock() method and similar to semaphores you need to use finally blocks to release in case you get exceptions.
+
+* **Why Reentrant?**    - A thread holding a lock can reacquire it multiple times, and such nested access is allowed. For example, one synchronized method can call another synchronized method which are in the same object.    -  The lock has a hold count, which increments with every lock(), and decrements with every unlock(), and the lock is released when the count is 0.
+
+*  **Difference with semaphores**: Similar to semaphores they also ensure mutual exclusion. The difference is that you control the P(s) and V(s) calls using a separate semaphore variable, which makes it more low level and hence more prone to errors. ReentrantLock provides you a higher level control, with implicit management of locking and unlocking through the try-finally block, which forces you to properly unlock the lock.
+
+**Module 8: Turning Optionals into a Stream and Collecting Stream Results**
+
+**8.1 Turning an Optional into a Stream**
+
+*   **The `flatMap` method:** The flatMap method can be used to convert an optional into a stream.   -  This enables a stream to handle potentially missing values using optionals and seamlessly integrate with the rest of the processing.   - If the optional contains value it produces a stream with a single value otherwise it results in empty stream.   ```java
+    Stream<String> ids = ...;
+    Stream<User> users =
+        ids.map(Users::lookup)
+        .flatMap(Optional::stream);
+   ```*   **lookup():**   - The lookup() method might return a User if a valid username is given.   - If you are getting a list of ids you can convert them to stream and using map function along with lookup you can generate stream of Optional objects.   - If you are not using optional you will get stream of users but might contain null values.  -  Using flatMap you can get a stream of valid users if lookup returns an Optional.   - Using ofNullable can convert nulls into empty optional and create a stream of optionals and flatMap will convert them to a stream.
+
+**8.2 Collecting Stream Results**
+
+Streams are intended for data processing, but we often need to output the results into specific data structures. This section covers techniques to collect stream data back into collections.
+
+*   **forEach():** Perform an action for each stream element:```java
+    mystream.forEach(System.out::println);
+```*   **toArray():** Convert a stream into an array:```java
+    Object[] result = mystream.toArray();
+    String[] result = mystream.toArray(String[]::new);
+```*   **collect(Collectors.toList()):** Convert a stream into a List:```java
+ List<String> result = mystream.collect(Collectors.toList());
+```*   **collect(Collectors.toSet()):** Convert a stream into a Set:```java
+  Set<String> result = mystream.collect(Collectors.toSet());
+```*  **collect(Collectors.toCollection(Supplier<C> collectionFactory):** To create a collection using the specific constructor. ```java
+       TreeSet<String> result = stream.collect(
+           Collectors.toCollection(TreeSet::new)
+       );
+```
+
+**8.3 Stream Summaries**
+
+*   **Summarizing Operations:** Used to get several summary results from a stream of numbers.*   **`summarizingInt(ToIntFunction<? super T> mapper)`:** Used with stream of integers and returns a `IntSummaryStatistics` that stores summary of the stream such as `count()`,  `max()`, `min()`, `sum()`, and `average()` .    - Requires mapping function to extract integers from the stream.```java
+    IntSummaryStatistics summary =
+      mystream.collect(
+          Collectors.summarizingInt(String::length)
+      );
+      double averageWordLength = summary.getAverage();
+      double maxWordLength = summary.getMax();
+```*   Similar functions available for double and long such as  `summarizingLong()` and  `summarizingDouble()`  which provides `LongSummaryStatistics` and  `DoubleSummaryStatistics`.
+
+**8.4 Converting a Stream to a Map**
+
+*   **`toMap(Function<? super T, ? extends K> keyMapper, Function<? super T, ? extends V> valueMapper):`**   - Allows you to collect the stream into a map using a given function to produce key and values from the stream objects.```java
+     Stream<Person> people = ...;
+    Map<Integer, String> idToName = people.collect(
+          Collectors.toMap(
+          Person::getId,
+          Person::getName
+     );
+```*  If you want to store entire objects as values, then use Function.identity()  ```java
+ Stream<Person> people = ...;
+    Map<Integer, Person> idToPerson = people.collect(
+        Collectors.toMap(
+            Person::getId,
+            Function.identity()
+      );
+```*  **Handling Duplicate Keys:**   -  If there are duplicate keys, a IllegalStateException exception will be thrown. You can handle that by using a  merge function, which takes the old value and new value and returns what is to be stored into the map in case of duplicates. For example, here we are choosing the existing value when we have duplicate key. ```java
+      Stream<Person> people = ...;
+    Map<String, Integer> nameToID = people.collect(
+      Collectors.toMap(
+            Person::getName,
+            Person::getId,
+            (existingValue, newValue) -> existingValue
+           )
+      );
+  ```
+
+**8.5 Grouping and Partitioning Values**
+
+*  **groupingBy(Function<? super T, ? extends K> classifier)**   - Used to group data by category. For example group people by name.    ```java
+        Stream<Person> people = ...;
+        Map<String, List<Person>> nameToPersons =
+              people.collect(
+                 Collectors.groupingBy(
+                      Person::getName
+                   )
+        );
+   ```*  **partitioningBy(Predicate<? super T> predicate)**   -   Used to partition data based on a condition, resulting in two list based on the condition. For example, to separate people whose names starts with 'A' from rest.```java
+        Stream<Person> people = ...;
+      Map<Boolean, List<Person>> aAndOtherPersons =
+        people.collect(
+            Collectors.partitioningBy(
+            p -> p.getName().substr(0,1).equals("A")
+           )
+        );
+      List<Person> startingLetterA =
+              aAndOtherPersons.get(true);
+```
+
+**Module 7: Summary**
+
+*   We have gone through a great depth and learnt how powerful Optional Types can be in handling situations where we might have to handle missing data.*   We also looked at powerful ways of collecting streams into different data structure based on your need.
+
+**Conclusion**
+
+Week 9 has laid down essential concepts for dealing with concurrency and data handling in Java.  By now you have a solid understanding of how to use various tools provided in Java to manage the multithreading challenges in building real-world applications. You also know how to manage the data and process it efficiently with streams, optionals and collectors.
